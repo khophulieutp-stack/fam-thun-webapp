@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -22,7 +21,6 @@
     h1 { font-size: 1.25rem; font-weight: 700; color: #1f1f1f; text-align: center; margin-bottom: 4px; }
     .sub-title { font-size: 0.85rem; color: #5f6368; text-align: center; margin-bottom: 16px; }
     
-    /* Loading overlay */
     #loadingBox {
       display: flex;
       align-items: center;
@@ -36,7 +34,6 @@
       margin-bottom: 12px;
     }
     
-    /* Form styles */
     .form-group { margin-bottom: 14px; }
     label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #3c4043; }
     input, select, textarea {
@@ -51,7 +48,6 @@
     input:focus, select:focus, textarea:focus { border-color: var(--primary); }
     input[readonly] { background-color: #f1f3f4; color: #5f6368; }
 
-    /* Radio color selector */
     .color-options { display: flex; gap: 12px; }
     .color-label {
       flex: 1;
@@ -69,7 +65,6 @@
     .color-label input { width: auto; margin: 0; }
     .color-label.active { border-color: var(--primary); background-color: #e8f0fe; }
 
-    /* Submit Button */
     button.btn-submit {
       width: 100%;
       background-color: var(--primary);
@@ -88,7 +83,6 @@
     button.btn-submit:hover { background-color: var(--primary-hover); }
     button.btn-submit:disabled { background-color: #bdc1c6; cursor: not-allowed; }
 
-    /* Summary Table */
     .table-container { overflow-x: auto; margin-top: 10px; }
     table { width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: center; }
     th, td { border: 1px solid var(--border); padding: 8px 6px; }
@@ -100,7 +94,7 @@
 <body>
 
 <div class="container">
-  <!-- Card Form Nhập Liệu -->
+  <!-- Form Nhập Liệu -->
   <div class="card">
     <h1>FAM THUN</h1>
     <div class="sub-title">Quản lý nhập liệu &amp; Lũy kế</div>
@@ -157,7 +151,7 @@
     </form>
   </div>
 
-  <!-- Card Bảng Lũy Kế -->
+  <!-- Bảng Lũy Kế -->
   <div class="card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
       <h2 style="font-size: 1rem;">BẢNG LŨY KẾ THEO SIZE</h2>
@@ -211,8 +205,8 @@
 </div>
 
 <script>
-  // Web App API đã cấu hình sẵn URL của bạn
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz35tPyGL0ZeqosqDa7TH2TOUtCtIjUaXkN3q86INDYvm5OkeNfnDY4aWkZFoqynEJAnA/exec";
+  // URL Web App mới
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzIEWbNG6Zmq0260_yTmmcmLL-N97vfcKqckTC2XobZ-1XoXkCe4AMkUS2XROyQ-CoiiQ/exec";
 
   function handleColorChange() {
     const isBlack = document.querySelector('input[name="mau"]:checked').value === "BLACK";
@@ -220,40 +214,43 @@
     document.getElementById("lblWhite").classList.toggle("active", !isBlack);
   }
 
-  // Tải dữ liệu ban đầu từ Google Sheets
+  // Tải dữ liệu lũy kế từ Google Sheets
   function loadSummary() {
     const loadingBox = document.getElementById("loadingBox");
-    loadingBox.style.display = "flex";
-    loadingBox.innerText = "⏳ Đang đồng bộ với Google Sheets...";
+    if (loadingBox) {
+      loadingBox.style.display = "flex";
+      loadingBox.innerText = "⏳ Đang đồng bộ với Google Sheets...";
+    }
 
-    fetch(SCRIPT_URL)
+    fetch(SCRIPT_URL, {
+      method: "GET",
+      redirect: "follow"
+    })
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
           const s = data.summary;
-          // Hiển thị số liệu BLACK
           ["XS", "S", "M", "L", "XL", "XXL", "TOTAL"].forEach(sz => {
-            document.getElementById(`b_${sz}`).innerText = (s.BLACK[sz] || 0).toLocaleString();
+            const bEl = document.getElementById(`b_${sz}`);
+            const wEl = document.getElementById(`w_${sz}`);
+            if (bEl) bEl.innerText = (s.BLACK[sz] || 0).toLocaleString();
+            if (wEl) wEl.innerText = (s.WHITE[sz] || 0).toLocaleString();
           });
-          // Hiển thị số liệu WHITE
-          ["XS", "S", "M", "L", "XL", "XXL", "TOTAL"].forEach(sz => {
-            document.getElementById(`w_${sz}`).innerText = (s.WHITE[sz] || 0).toLocaleString();
-          });
-          // Tổng cộng
-          document.getElementById("all_TOTAL").innerText = (s.TOTAL_ALL || 0).toLocaleString();
+          const totalEl = document.getElementById("all_TOTAL");
+          if (totalEl) totalEl.innerText = (s.TOTAL_ALL || 0).toLocaleString();
 
-          loadingBox.style.display = "none";
+          if (loadingBox) loadingBox.style.display = "none";
         } else {
-          loadingBox.innerText = "⚠️ Lỗi: " + data.message;
+          if (loadingBox) loadingBox.innerText = "⚠️ Lỗi: " + data.message;
         }
       })
       .catch(err => {
         console.error("Lỗi:", err);
-        loadingBox.innerText = "⚠️ Không thể tải dữ liệu tự động. Nhấn 'Làm mới' để thử lại.";
+        if (loadingBox) loadingBox.innerText = "⚠️ Chưa đồng bộ được dữ liệu. Nhấn 'Làm mới' để thử lại.";
       });
   }
 
-  // Gửi nhập liệu lên Google Sheet
+  // Gửi dữ liệu nhập kho vào sheet TONGHOP
   function submitData(e) {
     e.preventDefault();
     const btn = document.getElementById("btnSubmit");
@@ -272,31 +269,31 @@
     fetch(SCRIPT_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      redirect: "follow"
     })
-    .then(res => res.json())
-    .then(res => {
-      if (res.status === "success") {
-        alert("✅ Nhập liệu thành công!");
-        document.getElementById("soLuong").value = "";
-        document.getElementById("ghiChu").value = "";
-        document.getElementById("size").selectedIndex = 0;
-        loadSummary(); // Cập nhật lại bảng lũy kế ngay lập tức
-      } else {
-        alert("Lỗi: " + res.message);
-      }
-    })
-    .catch(err => {
-      alert("Lỗi kết nối khi gửi dữ liệu!");
-      console.error(err);
-    })
-    .finally(() => {
-      btn.disabled = false;
-      btn.innerText = "Lưu nhập liệu";
-    });
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === "success") {
+          alert("✅ Đã lưu vào Google Sheets thành công!");
+          document.getElementById("soLuong").value = "";
+          document.getElementById("ghiChu").value = "";
+          document.getElementById("size").selectedIndex = 0;
+          loadSummary();
+        } else {
+          alert("Lỗi: " + res.message);
+        }
+      })
+      .catch(err => {
+        console.error("Lỗi gửi dữ liệu:", err);
+        alert("Lỗi kết nối khi gửi dữ liệu!");
+      })
+      .finally(() => {
+        btn.disabled = false;
+        btn.innerText = "Lưu nhập liệu";
+      });
   }
 
-  // Chạy ngay khi tải xong trang
   window.addEventListener("DOMContentLoaded", loadSummary);
 </script>
 
