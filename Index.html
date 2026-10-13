@@ -234,16 +234,6 @@
       padding: 20px;
       font-size: 14px;
     }
-    
-    .config-box {
-      background: #fff7ed;
-      border: 1px solid #fed7aa;
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 16px;
-      font-size: 13px;
-      color: #9a3412;
-    }
   </style>
 </head>
 <body>
@@ -323,10 +313,9 @@
 
   <script>
     // =====================================================
-    // ⚠️ QUAN TRỌNG: Dán Web App URL của bạn vào đây
-    // Sau khi Deploy Code.gs, copy link rồi dán vào dòng dưới
+    // ⚠️ THAY DÒNG DƯỚI BẰNG WEB APP URL CỦA BẠN
     // =====================================================
-    const SCRIPT_URL = 'https://script.google.com/u/0/home/projects/1fVeLOo5M3wSXWzIrNIdAJTi9lZURIrNMubhnDABqjzUB7cJb9QvkU3pA/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz35tPyGL0ZeqosqDa7TH2TOUtCtIjUaXkN3q86INDYvm5OkeNfnDY4aWkZFoqynEJAnA/exec';
     
     function showPage(page, btn) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -340,8 +329,8 @@
       const content = document.getElementById('summaryContent');
       content.innerHTML = '<div class="loading">Đang tải dữ liệu...</div>';
       
-      if (SCRIPT_URL.includes('https://script.google.com/u/0/home/projects/1fVeLOo5M3wSXWzIrNIdAJTi9lZURIrNMubhnDABqjzUB7cJb9QvkU3pA/1')) {
-        content.innerHTML = '<div class="loading" style="color:#c2410c">Chưa cấu hình SCRIPT_URL!<br>Mở file Index.html sửa dòng SCRIPT_URL</div>';
+      if (SCRIPT_URL.includes('DÁN_WEB_APP')) {
+        content.innerHTML = '<div class="loading" style="color:#c2410c">Chưa cấu hình SCRIPT_URL!<br>Sửa dòng SCRIPT_URL trong file</div>';
         return;
       }
       
@@ -409,7 +398,7 @@
       if (!soLuong || Number(soLuong) < 1) { showMessage('Vui lòng nhập Số lượng hợp lệ', false); return; }
       
       if (SCRIPT_URL.includes('DÁN_WEB_APP')) {
-        showMessage('Chưa cấu hình SCRIPT_URL trong file Index.html', false);
+        showMessage('Chưa cấu hình SCRIPT_URL', false);
         return;
       }
       
@@ -458,7 +447,6 @@
       if (isSuccess) setTimeout(() => msg.style.display = 'none', 2500);
     }
     
-    // Tự load khi mở
     loadSummary();
   </script>
 </body>
