@@ -326,7 +326,7 @@
     // ⚠️ QUAN TRỌNG: Dán Web App URL của bạn vào đây
     // Sau khi Deploy Code.gs, copy link rồi dán vào dòng dưới
     // =====================================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz35tPyGL0ZeqosqDa7TH2TOUtCtIjUaXkN3q86INDYvm5OkeNfnDY4aWkZFoqynEJAnA/exec';
+    const SCRIPT_URL = 'https://script.google.com/u/0/home/projects/1fVeLOo5M3wSXWzIrNIdAJTi9lZURIrNMubhnDABqjzUB7cJb9QvkU3pA/exec';
     
     function showPage(page, btn) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -340,7 +340,7 @@
       const content = document.getElementById('summaryContent');
       content.innerHTML = '<div class="loading">Đang tải dữ liệu...</div>';
       
-      if (SCRIPT_URL.includes('https://script.google.com/macros/library/d/1fVeLOo5M3wSXWzIrNIdAJTi9lZURIrNMubhnDABqjzUB7cJb9QvkU3pA/1')) {
+      if (SCRIPT_URL.includes('https://script.google.com/u/0/home/projects/1fVeLOo5M3wSXWzIrNIdAJTi9lZURIrNMubhnDABqjzUB7cJb9QvkU3pA/1')) {
         content.innerHTML = '<div class="loading" style="color:#c2410c">Chưa cấu hình SCRIPT_URL!<br>Mở file Index.html sửa dòng SCRIPT_URL</div>';
         return;
       }
