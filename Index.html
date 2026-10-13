@@ -1,292 +1,232 @@
+/**
+ * API GET: Lấy danh sách và thống kê lũy kế từ sheet TONGHOP
+ */
+function doGet(e) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName("TONGHOP");
+    
+    const rows = sheet.getDataRange().getValues();
+    // Bỏ qua dòng tiêu đề
+    const dataRows = rows.slice(1);
+    
+    // Tính tổng lũy kế theo Màu và Size
+    const summary = {
+      BLACK: { XS: 0, S: 0, M: 0, L: 0, XL: 0, XXL: 0, TOTAL: 0 },
+      WHITE: { XS: 0, S: 0, M: 0, L: 0, XL: 0, XXL: 0, TOTAL: 0 },
+      TOTAL_ALL: 0
+    };
+
+    dataRows.forEach(row => {
+      const mau = (row[3] || "").toString().trim().toUpperCase(); // Cột D: MÀU
+      const size = (row[4] || "").toString().trim().toUpperCase(); // Cột E: SIZE
+      const sl = Number(row[5]) || 0;                             // Cột F: SỐ LƯỢNG
+
+      if (summary[mau]) {
+        if (summary[mau][size] !== undefined) {
+          summary[mau][size] += sl;
+        }
+        summary[mau].TOTAL += sl;
+      }
+      summary.TOTAL_ALL += sl;
+    });
+
+    const output = {
+      status: "success",
+      summary: summary,
+      totalEntries: dataRows.length
+    };
+
+    return ContentService.createTextOutput(JSON.stringify(output))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * API POST: Nhận dữ liệu nhập kho và ghi vào TONGHOP
+ */
+function doPost(e) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName("TONGHOP");
+
+    let data;
+    if (e.postData && e.postData.contents) {
+      data = JSON.parse(e.postData.contents);
+    } else {
+      data = e.parameter;
+    }
+
+    const ngay = data.ngay || Utilities.formatDate(new Date(), "Asia/Ho_Chi_Minh", "dd/MM/yyyy HH:mm");
+    const maHang = data.maHang || "GP016570";
+    const loai = data.loai || "Thun 2.8cm";
+    const mau = (data.mau || "BLACK").toUpperCase();
+    const size = (data.size || "M").toUpperCase();
+    const soLuong = Number(data.soLuong) || 0;
+    const ghiChu = data.ghiChu || "";
+
+    // Ghi dòng mới vào sheet TONGHOP
+    sheet.appendRow([ngay, maHang, loai, mau, size, soLuong, ghiChu]);
+
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      message: "Đã lưu vào Google Sheets thành công!"
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+Lưu ý cập nhật Deploy trong Apps Script:
+
+Sau khi dán code trên, nhấn Triển khai (Deploy) > Quản lý bản triển khai (Manage deployments) > bấm biểu tượng Sửa (bút chì) > chọn Phiên bản mới (New version) > bấm Triển khai (Deploy).
+PHẦN 2: MÃ FRONTEND CHO GITHUB PAGES (index.html)
+
+Sao chép toàn bộ mã dưới đây và dán đè vào file index.html trong repository GitHub Pages của bạn:
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FAM THUN - Nhập liệu</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAM THUN - Quản lý nhập liệu & Lũy kế</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f0f2f5;
-      padding: 16px;
-      color: #1a1a1a;
-      min-height: 100vh;
+    :root {
+      --primary: #1a73e8;
+      --primary-hover: #1557b0;
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --text: #202124;
+      --border: #dadce0;
+      --success: #34a853;
     }
-    .container {
-      max-width: 440px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-      overflow: hidden;
-    }
-    .header {
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
-      color: white;
-      padding: 18px 20px;
-      text-align: center;
-    }
-    .header h1 { font-size: 18px; font-weight: 700; }
-    .header p { font-size: 12px; opacity: 0.9; margin-top: 3px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 16px; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 16px; }
+    .card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border); }
+    h1 { font-size: 1.25rem; font-weight: 700; color: #1f1f1f; text-align: center; margin-bottom: 4px; }
+    .sub-title { font-size: 0.85rem; color: #5f6368; text-align: center; margin-bottom: 16px; }
     
-    .nav {
+    /* Loading overlay */
+    #loadingBox {
       display: flex;
-      background: #f8fafc;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .nav-btn {
-      flex: 1;
-      padding: 14px;
-      text-align: center;
-      font-size: 14px;
-      font-weight: 600;
-      color: #64748b;
-      cursor: pointer;
-      border: none;
-      background: none;
-    }
-    .nav-btn.active {
-      color: #4f46e5;
-      border-bottom: 3px solid #4f46e5;
-      background: white;
-    }
-    
-    .page { display: none; padding: 20px; }
-    .page.active { display: block; }
-    
-    .summary-card {
-      background: #f8fafc;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-      border: 1px solid #e2e8f0;
-    }
-    .summary-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      align-items: center;
+      justify-content: center;
+      background: #e8f0fe;
+      color: #1967d2;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.9rem;
       margin-bottom: 12px;
     }
-    .total-big {
-      font-size: 32px;
-      font-weight: 800;
-      color: #4f46e5;
-      text-align: center;
-      margin: 8px 0 4px;
-    }
-    .total-label {
-      text-align: center;
-      font-size: 13px;
-      color: #64748b;
-    }
     
-    .color-row { display: flex; gap: 12px; margin-top: 8px; }
-    .color-item {
-      flex: 1;
-      background: white;
-      border-radius: 10px;
-      padding: 14px;
-      text-align: center;
-      border: 1px solid #e2e8f0;
+    /* Form styles */
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #3c4043; }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border 0.2s;
     }
-    .color-item .name {
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 6px;
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+    input[readonly] { background-color: #f1f3f4; color: #5f6368; }
+
+    /* Radio color selector */
+    .color-options { display: flex; gap: 12px; }
+    .color-label {
+      flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
-    }
-    .color-item .qty { font-size: 22px; font-weight: 800; }
-    .dot {
-      width: 12px; height: 12px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-    .dot.black { background: #111; }
-    .dot.white { background: #fff; border: 1.5px solid #999; }
-    
-    .size-table { width: 100%; border-collapse: collapse; }
-    .size-table th, .size-table td {
-      padding: 10px 12px;
-      text-align: left;
-      border-bottom: 1px solid #f1f5f9;
-    }
-    .size-table th { font-size: 12px; color: #64748b; font-weight: 600; }
-    .size-table .size-name { font-weight: 700; }
-    .size-table .size-qty { font-weight: 700; color: #4f46e5; text-align: right; }
-    
-    .refresh-btn {
-      width: 100%;
-      padding: 12px;
-      background: #f1f5f9;
-      border: none;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #475569;
+      padding: 10px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
       cursor: pointer;
-      margin-top: 8px;
-    }
-    
-    .fixed-box {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin-bottom: 20px;
-    }
-    .fixed-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 5px 0;
-      font-size: 14px;
-    }
-    .fixed-row .label { color: #64748b; font-weight: 500; }
-    .fixed-row .value { font-weight: 700; color: #1e293b; }
-    
-    .form-group { margin-bottom: 16px; }
-    label {
-      display: block;
-      font-size: 13px;
       font-weight: 600;
-      color: #475569;
-      margin-bottom: 7px;
+      user-select: none;
     }
-    
-    .color-group { display: flex; gap: 12px; }
-    .color-option { flex: 1; position: relative; }
-    .color-option input { position: absolute; opacity: 0; width: 0; height: 0; }
-    .color-option label {
+    .color-label input { width: auto; margin: 0; }
+    .color-label.active { border-color: var(--primary); background-color: #e8f0fe; }
+
+    /* Submit Button */
+    button.btn-submit {
+      width: 100%;
+      background-color: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 12px;
-      border: 2px solid #e2e8f0;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-      margin: 0;
     }
-    .color-option input:checked + label {
-      border-color: #4f46e5;
-      background: #eef2ff;
-      color: #4f46e5;
-    }
-    
-    select, input[type="number"], textarea {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 10px;
-      font-size: 15px;
-      background: #fafafa;
-    }
-    select:focus, input:focus, textarea:focus {
-      outline: none;
-      border-color: #4f46e5;
-      background: white;
-    }
-    textarea { resize: vertical; min-height: 55px; }
-    
-    .btn {
-      width: 100%;
-      padding: 14px;
-      background: #4f46e5;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 6px;
-    }
-    .btn:disabled { background: #a5b4fc; cursor: not-allowed; }
-    
-    .message {
-      margin-top: 12px;
-      padding: 11px;
-      border-radius: 10px;
-      text-align: center;
-      font-size: 14px;
-      display: none;
-    }
-    .message.success {
-      background: #ecfdf5;
-      color: #065f46;
-      border: 1px solid #a7f3d0;
-    }
-    .message.error {
-      background: #fef2f2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-    }
-    
-    .loading {
-      text-align: center;
-      color: #64748b;
-      padding: 20px;
-      font-size: 14px;
-    }
+    button.btn-submit:hover { background-color: var(--primary-hover); }
+    button.btn-submit:disabled { background-color: #bdc1c6; cursor: not-allowed; }
+
+    /* Summary Table */
+    .table-container { overflow-x: auto; margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: center; }
+    th, td { border: 1px solid var(--border); padding: 8px 6px; }
+    th { background-color: #f1f3f4; font-weight: 600; }
+    .col-title { font-weight: bold; background-color: #f8f9fa; }
+    .total-row { font-weight: bold; background-color: #e8f0fe; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>FAM THUN</h1>
-      <p>Quản lý nhập liệu & Lũy kế</p>
-    </div>
-    
-    <div class="nav">
-      <button class="nav-btn active" onclick="showPage('home', this)">Home</button>
-      <button class="nav-btn" onclick="showPage('form', this)">Nhập liệu</button>
-    </div>
-    
-    <!-- HOME -->
-    <div id="page-home" class="page active">
-      <div id="summaryContent">
-        <div class="loading">Đang tải dữ liệu...</div>
-      </div>
-      <button class="refresh-btn" onclick="loadSummary()">↻ Làm mới dữ liệu</button>
-    </div>
-    
-    <!-- FORM -->
-    <div id="page-form" class="page">
-      <div class="fixed-box">
-        <div class="fixed-row">
-          <span class="label">Mã hàng</span>
-          <span class="value">GP016570</span>
-        </div>
-        <div class="fixed-row">
-          <span class="label">Loại</span>
-          <span class="value">Thun 2.8cm</span>
-        </div>
-      </div>
-      
+
+<div class="container">
+  <!-- Card Form Nhập Liệu -->
+  <div class="card">
+    <h1>FAM THUN</h1>
+    <div class="sub-title">Quản lý nhập liệu &amp; Lũy kế</div>
+
+    <div id="loadingBox">⏳ Đang tải dữ liệu từ Google Sheets...</div>
+
+    <form id="entryForm" onsubmit="submitData(event)">
       <div class="form-group">
-        <label>Màu</label>
-        <div class="color-group">
-          <div class="color-option">
-            <input type="radio" name="mau" id="black" value="Black" checked>
-            <label for="black"><span class="dot black"></span> Black</label>
-          </div>
-          <div class="color-option">
-            <input type="radio" name="mau" id="white" value="White">
-            <label for="white"><span class="dot white"></span> White</label>
-          </div>
+        <label>MÃ HÀNG</label>
+        <input type="text" id="maHang" value="GP016570" readonly>
+      </div>
+
+      <div class="form-group">
+        <label>LOẠI</label>
+        <input type="text" id="loai" value="Thun 2.8cm" readonly>
+      </div>
+
+      <div class="form-group">
+        <label>MÀU</label>
+        <div class="color-options">
+          <label class="color-label active" id="lblBlack">
+            <input type="radio" name="mau" value="BLACK" checked onchange="handleColorChange()"> BLACK
+          </label>
+          <label class="color-label" id="lblWhite">
+            <input type="radio" name="mau" value="WHITE" onchange="handleColorChange()"> WHITE
+          </label>
         </div>
       </div>
-      
+
       <div class="form-group">
-        <label>Size</label>
-        <select id="size">
-          <option value="">-- Chọn size --</option>
+        <label for="size">SIZE</label>
+        <select id="size" required>
+          <option value="" disabled selected>-- Chọn size --</option>
           <option value="XS">XS</option>
           <option value="S">S</option>
           <option value="M">M</option>
@@ -295,159 +235,163 @@
           <option value="XXL">XXL</option>
         </select>
       </div>
-      
+
       <div class="form-group">
-        <label>Số lượng</label>
-        <input type="number" id="soLuong" min="1" placeholder="Nhập số lượng">
+        <label for="soLuong">SỐ LƯỢNG</label>
+        <input type="number" id="soLuong" min="1" placeholder="Nhập số lượng..." required>
       </div>
-      
+
       <div class="form-group">
-        <label>Ghi chú (không bắt buộc)</label>
-        <textarea id="ghiChu" placeholder="Ghi chú thêm nếu có..."></textarea>
+        <label for="ghiChu">GHI CHÚ</label>
+        <input type="text" id="ghiChu" placeholder="Ghi chú thêm (không bắt buộc)">
       </div>
-      
-      <button class="btn" id="btnSave" onclick="save()">Lưu dữ liệu</button>
-      <div id="message" class="message"></div>
-    </div>
+
+      <button type="submit" id="btnSubmit" class="btn-submit">Lưu nhập liệu</button>
+    </form>
   </div>
 
-  <script>
-    // =====================================================
-    // ⚠️ THAY DÒNG DƯỚI BẰNG WEB APP URL CỦA BẠN
-    // =====================================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz35tPyGL0ZeqosqDa7TH2TOUtCtIjUaXkN3q86INDYvm5OkeNfnDY4aWkZFoqynEJAnA/exec';
+  <!-- Card Bảng Lũy Kế -->
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <h2 style="font-size: 1rem;">BẢNG LŨY KẾ THEO SIZE</h2>
+      <button onclick="loadSummary()" style="font-size:0.75rem; padding:4px 8px; border-radius:4px; border:1px solid #dadce0; cursor:pointer;">Làm mới</button>
+    </div>
     
-    function showPage(page, btn) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('page-' + page).classList.add('active');
-      if (btn) btn.classList.add('active');
-      if (page === 'home') loadSummary();
-    }
-    
-    async function loadSummary() {
-      const content = document.getElementById('summaryContent');
-      content.innerHTML = '<div class="loading">Đang tải dữ liệu...</div>';
-      
-      if (SCRIPT_URL.includes('DÁN_WEB_APP')) {
-        content.innerHTML = '<div class="loading" style="color:#c2410c">Chưa cấu hình SCRIPT_URL!<br>Sửa dòng SCRIPT_URL trong file</div>';
-        return;
-      }
-      
-      try {
-        const res = await fetch(SCRIPT_URL + '?action=summary');
-        const data = await res.json();
-        
-        if (!data.success && data.message) {
-          content.innerHTML = '<div class="loading">Lỗi: ' + data.message + '</div>';
-          return;
-        }
-        
-        let html = `
-          <div class="summary-card">
-            <div class="summary-title">Tổng lũy kế</div>
-            <div class="total-big">${(data.total || 0).toLocaleString()}</div>
-            <div class="total-label">Tổng số lượng đã nhập</div>
-          </div>
-          
-          <div class="summary-card">
-            <div class="summary-title">Theo Màu</div>
-            <div class="color-row">
-              <div class="color-item">
-                <div class="name"><span class="dot black"></span> Black</div>
-                <div class="qty">${(data.byColor?.Black || 0).toLocaleString()}</div>
-              </div>
-              <div class="color-item">
-                <div class="name"><span class="dot white"></span> White</div>
-                <div class="qty">${(data.byColor?.White || 0).toLocaleString()}</div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="summary-card">
-            <div class="summary-title">Theo Size</div>
-            <table class="size-table">
-              <thead>
-                <tr><th>Size</th><th style="text-align:right">Số lượng</th></tr>
-              </thead>
-              <tbody>
-        `;
-        
-        ['XS','S','M','L','XL','XXL'].forEach(s => {
-          html += `<tr>
-            <td class="size-name">${s}</td>
-            <td class="size-qty">${(data.bySize?.[s] || 0).toLocaleString()}</td>
-          </tr>`;
-        });
-        
-        html += `</tbody></table></div>`;
-        content.innerHTML = html;
-      } catch (err) {
-        content.innerHTML = '<div class="loading">Lỗi kết nối: ' + err.message + '</div>';
-      }
-    }
-    
-    async function save() {
-      const btn = document.getElementById('btnSave');
-      const mau = document.querySelector('input[name="mau"]:checked').value;
-      const size = document.getElementById('size').value;
-      const soLuong = document.getElementById('soLuong').value;
-      const ghiChu = document.getElementById('ghiChu').value.trim();
-      
-      if (!size) { showMessage('Vui lòng chọn Size', false); return; }
-      if (!soLuong || Number(soLuong) < 1) { showMessage('Vui lòng nhập Số lượng hợp lệ', false); return; }
-      
-      if (SCRIPT_URL.includes('DÁN_WEB_APP')) {
-        showMessage('Chưa cấu hình SCRIPT_URL', false);
-        return;
-      }
-      
-      btn.disabled = true;
-      btn.textContent = 'Đang lưu...';
-      
-      try {
-        const res = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            action: 'save',
-            mau: mau,
-            size: size,
-            soLuong: soLuong,
-            ghiChu: ghiChu
-          })
-        });
-        
-        const data = await res.json();
-        
-        btn.disabled = false;
-        btn.textContent = 'Lưu dữ liệu';
-        
-        if (data.success) {
-          showMessage(data.message, true);
-          document.getElementById('size').value = '';
-          document.getElementById('soLuong').value = '';
-          document.getElementById('ghiChu').value = '';
-          document.getElementById('black').checked = true;
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Màu</th>
+            <th>XS</th>
+            <th>S</th>
+            <th>M</th>
+            <th>L</th>
+            <th>XL</th>
+            <th>XXL</th>
+            <th>Tổng</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-title">BLACK</td>
+            <td id="b_XS">0</td>
+            <td id="b_S">0</td>
+            <td id="b_M">0</td>
+            <td id="b_L">0</td>
+            <td id="b_XL">0</td>
+            <td id="b_XXL">0</td>
+            <td id="b_TOTAL" style="font-weight:bold;">0</td>
+          </tr>
+          <tr>
+            <td class="col-title">WHITE</td>
+            <td id="w_XS">0</td>
+            <td id="w_S">0</td>
+            <td id="w_M">0</td>
+            <td id="w_L">0</td>
+            <td id="w_XL">0</td>
+            <td id="w_XXL">0</td>
+            <td id="w_TOTAL" style="font-weight:bold;">0</td>
+          </tr>
+          <tr class="total-row">
+            <td>TỔNG CỘNG</td>
+            <td colspan="6"></td>
+            <td id="all_TOTAL">0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Web App API đã cấu hình sẵn URL của bạn
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz35tPyGL0ZeqosqDa7TH2TOUtCtIjUaXkN3q86INDYvm5OkeNfnDY4aWkZFoqynEJAnA/exec";
+
+  function handleColorChange() {
+    const isBlack = document.querySelector('input[name="mau"]:checked').value === "BLACK";
+    document.getElementById("lblBlack").classList.toggle("active", isBlack);
+    document.getElementById("lblWhite").classList.toggle("active", !isBlack);
+  }
+
+  // Tải dữ liệu ban đầu từ Google Sheets
+  function loadSummary() {
+    const loadingBox = document.getElementById("loadingBox");
+    loadingBox.style.display = "flex";
+    loadingBox.innerText = "⏳ Đang đồng bộ với Google Sheets...";
+
+    fetch(SCRIPT_URL)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          const s = data.summary;
+          // Hiển thị số liệu BLACK
+          ["XS", "S", "M", "L", "XL", "XXL", "TOTAL"].forEach(sz => {
+            document.getElementById(`b_${sz}`).innerText = (s.BLACK[sz] || 0).toLocaleString();
+          });
+          // Hiển thị số liệu WHITE
+          ["XS", "S", "M", "L", "XL", "XXL", "TOTAL"].forEach(sz => {
+            document.getElementById(`w_${sz}`).innerText = (s.WHITE[sz] || 0).toLocaleString();
+          });
+          // Tổng cộng
+          document.getElementById("all_TOTAL").innerText = (s.TOTAL_ALL || 0).toLocaleString();
+
+          loadingBox.style.display = "none";
         } else {
-          showMessage(data.message || 'Lỗi không xác định', false);
+          loadingBox.innerText = "⚠️ Lỗi: " + data.message;
         }
-      } catch (err) {
-        btn.disabled = false;
-        btn.textContent = 'Lưu dữ liệu';
-        showMessage('Lỗi kết nối: ' + err.message, false);
+      })
+      .catch(err => {
+        console.error("Lỗi:", err);
+        loadingBox.innerText = "⚠️ Không thể tải dữ liệu tự động. Nhấn 'Làm mới' để thử lại.";
+      });
+  }
+
+  // Gửi nhập liệu lên Google Sheet
+  function submitData(e) {
+    e.preventDefault();
+    const btn = document.getElementById("btnSubmit");
+    btn.disabled = true;
+    btn.innerText = "Đang lưu...";
+
+    const payload = {
+      maHang: document.getElementById("maHang").value,
+      loai: document.getElementById("loai").value,
+      mau: document.querySelector('input[name="mau"]:checked').value,
+      size: document.getElementById("size").value,
+      soLuong: Number(document.getElementById("soLuong").value),
+      ghiChu: document.getElementById("ghiChu").value
+    };
+
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(res => {
+      if (res.status === "success") {
+        alert("✅ Nhập liệu thành công!");
+        document.getElementById("soLuong").value = "";
+        document.getElementById("ghiChu").value = "";
+        document.getElementById("size").selectedIndex = 0;
+        loadSummary(); // Cập nhật lại bảng lũy kế ngay lập tức
+      } else {
+        alert("Lỗi: " + res.message);
       }
-    }
-    
-    function showMessage(text, isSuccess) {
-      const msg = document.getElementById('message');
-      msg.style.display = 'block';
-      msg.textContent = text;
-      msg.className = 'message ' + (isSuccess ? 'success' : 'error');
-      if (isSuccess) setTimeout(() => msg.style.display = 'none', 2500);
-    }
-    
-    loadSummary();
-  </script>
+    })
+    .catch(err => {
+      alert("Lỗi kết nối khi gửi dữ liệu!");
+      console.error(err);
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.innerText = "Lưu nhập liệu";
+    });
+  }
+
+  // Chạy ngay khi tải xong trang
+  window.addEventListener("DOMContentLoaded", loadSummary);
+</script>
+
 </body>
 </html>
