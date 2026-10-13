@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-  <base target="_top">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FAM THUN - Nhập liệu</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -25,7 +26,6 @@
       color: white;
       padding: 18px 20px;
       text-align: center;
-      position: relative;
     }
     .header h1 { font-size: 18px; font-weight: 700; }
     .header p { font-size: 12px; opacity: 0.9; margin-top: 3px; }
@@ -45,7 +45,6 @@
       cursor: pointer;
       border: none;
       background: none;
-      transition: all 0.2s;
     }
     .nav-btn.active {
       color: #4f46e5;
@@ -56,7 +55,6 @@
     .page { display: none; padding: 20px; }
     .page.active { display: block; }
     
-    /* ===== HOME ===== */
     .summary-card {
       background: #f8fafc;
       border-radius: 12px;
@@ -83,14 +81,9 @@
       text-align: center;
       font-size: 13px;
       color: #64748b;
-      margin-bottom: 8px;
     }
     
-    .color-row {
-      display: flex;
-      gap: 12px;
-      margin-top: 8px;
-    }
+    .color-row { display: flex; gap: 12px; margin-top: 8px; }
     .color-item {
       flex: 1;
       background: white;
@@ -108,10 +101,7 @@
       justify-content: center;
       gap: 6px;
     }
-    .color-item .qty {
-      font-size: 22px;
-      font-weight: 800;
-    }
+    .color-item .qty { font-size: 22px; font-weight: 800; }
     .dot {
       width: 12px; height: 12px;
       border-radius: 50%;
@@ -120,23 +110,13 @@
     .dot.black { background: #111; }
     .dot.white { background: #fff; border: 1.5px solid #999; }
     
-    .size-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+    .size-table { width: 100%; border-collapse: collapse; }
     .size-table th, .size-table td {
       padding: 10px 12px;
       text-align: left;
       border-bottom: 1px solid #f1f5f9;
     }
-    .size-table th {
-      font-size: 12px;
-      color: #64748b;
-      font-weight: 600;
-    }
-    .size-table td {
-      font-size: 15px;
-    }
+    .size-table th { font-size: 12px; color: #64748b; font-weight: 600; }
     .size-table .size-name { font-weight: 700; }
     .size-table .size-qty { font-weight: 700; color: #4f46e5; text-align: right; }
     
@@ -152,9 +132,7 @@
       cursor: pointer;
       margin-top: 8px;
     }
-    .refresh-btn:hover { background: #e2e8f0; }
     
-    /* ===== FORM ===== */
     .fixed-box {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
@@ -195,7 +173,6 @@
       font-weight: 600;
       font-size: 14px;
       margin: 0;
-      transition: all 0.2s;
     }
     .color-option input:checked + label {
       border-color: #4f46e5;
@@ -230,7 +207,6 @@
       cursor: pointer;
       margin-top: 6px;
     }
-    .btn:hover { background: #4338ca; }
     .btn:disabled { background: #a5b4fc; cursor: not-allowed; }
     
     .message {
@@ -258,6 +234,16 @@
       padding: 20px;
       font-size: 14px;
     }
+    
+    .config-box {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #9a3412;
+    }
   </style>
 </head>
 <body>
@@ -267,13 +253,12 @@
       <p>Quản lý nhập liệu & Lũy kế</p>
     </div>
     
-    <!-- Navigation -->
     <div class="nav">
-      <button class="nav-btn active" onclick="showPage('home')">Home</button>
-      <button class="nav-btn" onclick="showPage('form')">Nhập liệu</button>
+      <button class="nav-btn active" onclick="showPage('home', this)">Home</button>
+      <button class="nav-btn" onclick="showPage('form', this)">Nhập liệu</button>
     </div>
     
-    <!-- ===== PAGE HOME ===== -->
+    <!-- HOME -->
     <div id="page-home" class="page active">
       <div id="summaryContent">
         <div class="loading">Đang tải dữ liệu...</div>
@@ -281,7 +266,7 @@
       <button class="refresh-btn" onclick="loadSummary()">↻ Làm mới dữ liệu</button>
     </div>
     
-    <!-- ===== PAGE FORM ===== -->
+    <!-- FORM -->
     <div id="page-form" class="page">
       <div class="fixed-box">
         <div class="fixed-row">
@@ -337,126 +322,132 @@
   </div>
 
   <script>
-    // Chuyển trang
-    function showPage(page) {
+    // =====================================================
+    // ⚠️ QUAN TRỌNG: Dán Web App URL của bạn vào đây
+    // Sau khi Deploy Code.gs, copy link rồi dán vào dòng dưới
+    // =====================================================
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz35tPyGL0ZeqosqDa7TH2TOUtCtIjUaXkN3q86INDYvm5OkeNfnDY4aWkZFoqynEJAnA/exec';
+    
+    function showPage(page, btn) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      
       document.getElementById('page-' + page).classList.add('active');
-      event.target.classList.add('active');
-      
+      if (btn) btn.classList.add('active');
       if (page === 'home') loadSummary();
     }
     
-    // Load lũy kế
-    function loadSummary() {
+    async function loadSummary() {
       const content = document.getElementById('summaryContent');
       content.innerHTML = '<div class="loading">Đang tải dữ liệu...</div>';
       
-      google.script.run
-        .withSuccessHandler(function(data) {
-          if (data.error) {
-            content.innerHTML = '<div class="loading">Lỗi: ' + data.error + '</div>';
-            return;
-          }
+      if (SCRIPT_URL.includes('https://script.google.com/macros/library/d/1fVeLOo5M3wSXWzIrNIdAJTi9lZURIrNMubhnDABqjzUB7cJb9QvkU3pA/1')) {
+        content.innerHTML = '<div class="loading" style="color:#c2410c">Chưa cấu hình SCRIPT_URL!<br>Mở file Index.html sửa dòng SCRIPT_URL</div>';
+        return;
+      }
+      
+      try {
+        const res = await fetch(SCRIPT_URL + '?action=summary');
+        const data = await res.json();
+        
+        if (!data.success && data.message) {
+          content.innerHTML = '<div class="loading">Lỗi: ' + data.message + '</div>';
+          return;
+        }
+        
+        let html = `
+          <div class="summary-card">
+            <div class="summary-title">Tổng lũy kế</div>
+            <div class="total-big">${(data.total || 0).toLocaleString()}</div>
+            <div class="total-label">Tổng số lượng đã nhập</div>
+          </div>
           
-          let html = `
-            <div class="summary-card">
-              <div class="summary-title">Tổng lũy kế</div>
-              <div class="total-big">${data.total.toLocaleString()}</div>
-              <div class="total-label">Tổng số lượng đã nhập</div>
-            </div>
-            
-            <div class="summary-card">
-              <div class="summary-title">Theo Màu</div>
-              <div class="color-row">
-                <div class="color-item">
-                  <div class="name"><span class="dot black"></span> Black</div>
-                  <div class="qty">${data.byColor.Black.toLocaleString()}</div>
-                </div>
-                <div class="color-item">
-                  <div class="name"><span class="dot white"></span> White</div>
-                  <div class="qty">${data.byColor.White.toLocaleString()}</div>
-                </div>
+          <div class="summary-card">
+            <div class="summary-title">Theo Màu</div>
+            <div class="color-row">
+              <div class="color-item">
+                <div class="name"><span class="dot black"></span> Black</div>
+                <div class="qty">${(data.byColor?.Black || 0).toLocaleString()}</div>
+              </div>
+              <div class="color-item">
+                <div class="name"><span class="dot white"></span> White</div>
+                <div class="qty">${(data.byColor?.White || 0).toLocaleString()}</div>
               </div>
             </div>
-            
-            <div class="summary-card">
-              <div class="summary-title">Theo Size</div>
-              <table class="size-table">
-                <thead>
-                  <tr>
-                    <th>Size</th>
-                    <th style="text-align:right">Số lượng</th>
-                  </tr>
-                </thead>
-                <tbody>
-          `;
+          </div>
           
-          const sizes = ['XS','S','M','L','XL','XXL'];
-          sizes.forEach(s => {
-            html += `
-              <tr>
-                <td class="size-name">${s}</td>
-                <td class="size-qty">${data.bySize[s].toLocaleString()}</td>
-              </tr>
-            `;
-          });
-          
-          html += `
-                </tbody>
-              </table>
-            </div>
-          `;
-          
-          content.innerHTML = html;
-        })
-        .withFailureHandler(function(err) {
-          content.innerHTML = '<div class="loading">Lỗi kết nối: ' + err.message + '</div>';
-        })
-        .getSummary();
+          <div class="summary-card">
+            <div class="summary-title">Theo Size</div>
+            <table class="size-table">
+              <thead>
+                <tr><th>Size</th><th style="text-align:right">Số lượng</th></tr>
+              </thead>
+              <tbody>
+        `;
+        
+        ['XS','S','M','L','XL','XXL'].forEach(s => {
+          html += `<tr>
+            <td class="size-name">${s}</td>
+            <td class="size-qty">${(data.bySize?.[s] || 0).toLocaleString()}</td>
+          </tr>`;
+        });
+        
+        html += `</tbody></table></div>`;
+        content.innerHTML = html;
+      } catch (err) {
+        content.innerHTML = '<div class="loading">Lỗi kết nối: ' + err.message + '</div>';
+      }
     }
     
-    // Lưu dữ liệu
-    function save() {
+    async function save() {
       const btn = document.getElementById('btnSave');
       const mau = document.querySelector('input[name="mau"]:checked').value;
       const size = document.getElementById('size').value;
       const soLuong = document.getElementById('soLuong').value;
       const ghiChu = document.getElementById('ghiChu').value.trim();
       
-      if (!size) {
-        showMessage('Vui lòng chọn Size', false);
-        return;
-      }
-      if (!soLuong || Number(soLuong) < 1) {
-        showMessage('Vui lòng nhập Số lượng hợp lệ', false);
+      if (!size) { showMessage('Vui lòng chọn Size', false); return; }
+      if (!soLuong || Number(soLuong) < 1) { showMessage('Vui lòng nhập Số lượng hợp lệ', false); return; }
+      
+      if (SCRIPT_URL.includes('DÁN_WEB_APP')) {
+        showMessage('Chưa cấu hình SCRIPT_URL trong file Index.html', false);
         return;
       }
       
       btn.disabled = true;
       btn.textContent = 'Đang lưu...';
       
-      google.script.run
-        .withSuccessHandler(function(res) {
-          btn.disabled = false;
-          btn.textContent = 'Lưu dữ liệu';
-          if (res.success) {
-            showMessage(res.message, true);
-            document.getElementById('size').value = '';
-            document.getElementById('soLuong').value = '';
-            document.getElementById('ghiChu').value = '';
-            document.getElementById('black').checked = true;
-          } else {
-            showMessage(res.message, false);
-          }
-        })
-        .withFailureHandler(function(err) {
-          btn.disabled = false;
-          btn.textContent = 'Lưu dữ liệu';
-          showMessage('Lỗi kết nối: ' + err.message, false);
-        })
-        .saveData({ mau, size, soLuong, ghiChu });
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'save',
+            mau: mau,
+            size: size,
+            soLuong: soLuong,
+            ghiChu: ghiChu
+          })
+        });
+        
+        const data = await res.json();
+        
+        btn.disabled = false;
+        btn.textContent = 'Lưu dữ liệu';
+        
+        if (data.success) {
+          showMessage(data.message, true);
+          document.getElementById('size').value = '';
+          document.getElementById('soLuong').value = '';
+          document.getElementById('ghiChu').value = '';
+          document.getElementById('black').checked = true;
+        } else {
+          showMessage(data.message || 'Lỗi không xác định', false);
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Lưu dữ liệu';
+        showMessage('Lỗi kết nối: ' + err.message, false);
+      }
     }
     
     function showMessage(text, isSuccess) {
@@ -467,7 +458,7 @@
       if (isSuccess) setTimeout(() => msg.style.display = 'none', 2500);
     }
     
-    // Tự động load Home khi mở app
+    // Tự load khi mở
     loadSummary();
   </script>
 </body>
