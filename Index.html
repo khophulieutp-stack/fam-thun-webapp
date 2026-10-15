@@ -3,1019 +3,231 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hệ Thống Quản Lý Sản Xuất - MES Terminal</title>
+  <title>Quản Lý Nhập Liệu Sản Xuất</title>
   <style>
     :root {
       --primary: #2563eb;
       --primary-hover: #1d4ed8;
-      --primary-light: #eff6ff;
+      --navy: #0f172a;
       --bg: #f1f5f9;
-      --card-bg: #ffffff;
-      --text: #0f172a;
-      --text-secondary: #334155;
+      --card: #ffffff;
+      --text: #1e293b;
       --muted: #64748b;
-      --border: #e2e8f0;
+      --border: #cbd5e1;
       --danger: #ef4444;
-      --danger-hover: #dc2626;
-      --danger-light: #fef2f2;
       --success: #10b981;
-      --success-light: #ecfdf5;
-      --warning: #f59e0b;
-      --radius-lg: 14px;
-      --radius-md: 10px;
-      --radius-sm: 6px;
-      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
-      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
 
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      line-height: 1.5;
-    }
-
-    /* TOP NAVIGATION BAR */
+    /* Thanh tiêu đề phần mềm */
     .topbar {
-      background: #0f172a;
-      color: #ffffff;
-      padding: 12px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+      background: var(--navy); color: #fff; padding: 12px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15); margin-bottom: 20px;
     }
+    .topbar h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.3px; }
+    .topbar span { font-size: 0.8rem; color: #94a3b8; }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    /* Bố cục 2 cột chuẩn phần mềm */
+    .container {
+      max-width: 1200px; margin: 0 auto; padding: 0 16px 24px;
+      display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start;
     }
+    .right-panel { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+    @media (max-width: 860px) { .container { grid-template-columns: 1fr; } }
 
-    .brand-icon {
-      width: 36px;
-      height: 36px;
-      background: var(--primary);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 1.1rem;
-      letter-spacing: -0.5px;
-    }
-
-    .brand-text h1 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      letter-spacing: -0.2px;
-    }
-
-    .brand-text p {
-      font-size: 0.75rem;
-      color: #94a3b8;
-    }
-
-    .topbar-actions {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .sync-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      color: #cbd5e1;
-      background: rgba(255, 255, 255, 0.08);
-      padding: 6px 12px;
-      border-radius: 20px;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--success);
-      box-shadow: 0 0 8px var(--success);
-    }
-
-    .status-dot.syncing {
-      background: var(--warning);
-      box-shadow: 0 0 8px var(--warning);
-      animation: pulse 1s infinite;
-    }
-
-    .status-dot.error {
-      background: var(--danger);
-      box-shadow: 0 0 8px var(--danger);
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-
-    /* MAIN WORKSPACE */
-    .workspace {
-      max-width: 1280px;
-      width: 100%;
-      margin: 20px auto;
-      padding: 0 16px 32px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    /* KPI SUMMARY CARDS */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-    }
-
-    .kpi-card {
-      background: var(--card-bg);
-      border-radius: var(--radius-lg);
-      padding: 18px 20px;
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .kpi-card::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: var(--primary);
-    }
-
-    .kpi-card.black-card::before { background: #0f172a; }
-    .kpi-card.white-card::before { background: #94a3b8; }
-
-    .kpi-title {
-      font-size: 0.8rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .kpi-value {
-      font-size: 1.85rem;
-      font-weight: 800;
-      color: var(--text);
-      font-variant-numeric: tabular-nums;
-      line-height: 1.2;
-    }
-
-    .kpi-sub {
-      font-size: 0.8rem;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* DASHBOARD 2-COLUMN LAYOUT */
-    .main-grid {
-      display: grid;
-      grid-template-columns: 380px 1fr;
-      gap: 20px;
-      align-items: start;
-    }
-
-    @media (max-width: 960px) {
-      .main-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .right-column {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      min-width: 0;
-    }
-
-    /* CARD BOX */
+    /* Khung Card */
     .card {
-      background: var(--card-bg);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
-      overflow: hidden;
+      background: var(--card); border-radius: 10px;
+      border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;
     }
-
     .card-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #fafaf9;
+      background: #f8fafc; padding: 12px 16px; border-bottom: 1px solid #e2e8f0;
+      display: flex; align-items: center; justify-content: space-between;
+      font-weight: 700; font-size: 0.95rem; color: var(--navy);
     }
+    .card-body { padding: 16px; }
 
-    .card-title {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    /* Form nhập liệu */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .full-width { grid-column: span 2; }
+    label { font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; }
+    input, select {
+      padding: 9px 11px; border: 1px solid var(--border); border-radius: 6px;
+      font-size: 0.95rem; color: var(--text); background: #fff; outline: none;
     }
+    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+    #soLuong { font-weight: 700; font-size: 1.05rem; color: var(--primary); }
 
-    .card-body {
-      padding: 20px;
-    }
-
-    /* FORM STYLING */
-    .form-stack {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .form-row-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    label {
-      font-size: 0.825rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-      display: flex;
-      justify-content: space-between;
-    }
-
-    label span.req {
-      color: var(--danger);
-    }
-
-    input[type="text"],
-    input[type="number"] {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-md);
-      font-size: 0.95rem;
-      color: var(--text);
-      background: #fff;
-      outline: none;
-      transition: all 0.15s ease;
-    }
-
-    input[type="number"] {
-      font-size: 1.15rem;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-    }
-
-    /* SEGMENTED PICKERS (COLOR & SIZE) */
-    .color-picker {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .color-option {
-      cursor: pointer;
-      border: 2px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 10px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-weight: 700;
-      font-size: 0.9rem;
-      transition: all 0.15s ease;
-      user-select: none;
-      background: #fff;
-    }
-
-    .color-swatch {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      border: 1px solid rgba(0,0,0,0.2);
-    }
-
-    .color-option[data-value="BLACK"] .color-swatch { background: #000; }
-    .color-option[data-value="WHITE"] .color-swatch { background: #fff; }
-
-    .color-option.active[data-value="BLACK"] {
-      border-color: #0f172a;
-      background: #0f172a;
-      color: #fff;
-    }
-    .color-option.active[data-value="BLACK"] .color-swatch {
-      border-color: #fff;
-    }
-
-    .color-option.active[data-value="WHITE"] {
-      border-color: var(--primary);
-      background: var(--primary-light);
-      color: var(--primary);
-    }
-
-    .size-picker {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 6px;
-    }
-
-    .size-option {
-      cursor: pointer;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 9px 0;
-      text-align: center;
-      font-weight: 700;
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-      background: #fff;
-      transition: all 0.15s ease;
-      user-select: none;
-    }
-
-    .size-option:hover {
-      border-color: #94a3b8;
-    }
-
-    .size-option.active {
-      border-color: var(--primary);
-      background: var(--primary);
-      color: #fff;
-      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
-    }
-
-    /* QUICK QUANTITY CHIPS */
-    .quick-qty {
-      display: flex;
-      gap: 6px;
-      margin-top: 4px;
-    }
-
-    .qty-chip {
-      flex: 1;
-      background: #f1f5f9;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 5px 0;
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .qty-chip:hover {
-      background: #e2e8f0;
-      color: var(--text);
-    }
-
-    /* BUTTONS */
+    /* Nút bấm */
     .btn {
-      padding: 12px 18px;
-      border: none;
-      border-radius: var(--radius-md);
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.18s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      padding: 10px 16px; border: none; border-radius: 6px; font-weight: 600;
+      font-size: 0.9rem; cursor: pointer; transition: 0.15s;
     }
+    .btn-primary { background: var(--primary); color: #fff; width: 100%; margin-top: 14px; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-reload { background: #fff; border: 1px solid var(--border); color: var(--text); padding: 5px 10px; font-size: 0.8rem; }
+    .btn-reload:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-danger { background: #fee2e2; color: var(--danger); padding: 5px 10px; font-size: 0.78rem; }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    .btn-primary {
-      background: var(--primary);
-      color: #ffffff;
-      width: 100%;
-      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
-    }
+    /* Bảng dữ liệu */
+    .table-responsive { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: center; font-variant-numeric: tabular-nums; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+    th { background: #f8fafc; color: var(--muted); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; }
+    tbody tr:hover { background: #f8fafc; }
+    tr:last-child td { border-bottom: none; }
+    .total-row { font-weight: 700; background: #eff6ff !important; border-top: 2px solid #bfdbfe; }
 
-    .btn-primary:hover:not(:disabled) {
-      background: var(--primary-hover);
-      transform: translateY(-1px);
-    }
+    /* Nhãn Màu & Thông báo */
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; }
+    .badge-black { background: #0f172a; color: #fff; }
+    .badge-white { background: #f8fafc; color: #0f172a; border: 1px solid #94a3b8; }
 
-    .btn-refresh {
-      background: #fff;
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      padding: 6px 12px;
-      font-size: 0.82rem;
-      border-radius: var(--radius-sm);
-    }
-
-    .btn-refresh:hover:not(:disabled) {
-      border-color: var(--primary);
-      color: var(--primary);
-      background: var(--primary-light);
-    }
-
-    .btn-danger-outline {
-      background: #fff;
-      border: 1px solid #fecaca;
-      color: var(--danger);
-      padding: 5px 10px;
-      font-size: 0.78rem;
-      border-radius: var(--radius-sm);
-    }
-
-    .btn-danger-outline:hover:not(:disabled) {
-      background: var(--danger);
-      color: #fff;
-      border-color: var(--danger);
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-
-    /* TABLES */
-    .table-responsive {
-      width: 100%;
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: center;
-      font-size: 0.9rem;
-      font-variant-numeric: tabular-nums;
-    }
-
-    th, td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-    }
-
-    th {
-      background: #f8fafc;
-      color: var(--muted);
-      font-weight: 700;
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-
-    tbody tr:hover {
-      background-color: #f8fafc;
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    .total-row {
-      font-weight: 700;
-      background: #f1f5f9 !important;
-      border-top: 2px solid var(--border);
-    }
-
-    .grand-total-cell {
-      color: var(--primary);
-      font-size: 1.05rem;
-      font-weight: 800;
-    }
-
-    /* BADGES */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 3px 10px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 700;
-    }
-
-    .badge-black {
-      background: #0f172a;
-      color: #ffffff;
-    }
-
-    .badge-white {
-      background: #f8fafc;
-      color: #0f172a;
-      border: 1px solid #cbd5e1;
-    }
-
-    .size-pill {
-      display: inline-block;
-      min-width: 32px;
-      padding: 2px 8px;
-      background: #eff6ff;
-      color: var(--primary);
-      border-radius: 6px;
-      font-weight: 700;
-      font-size: 0.8rem;
-    }
-
-    /* MODAL XÁC NHẬN */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(2px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-      padding: 16px;
-    }
-
-    .modal-backdrop.show {
-      display: flex;
-    }
-
-    .modal {
-      background: #fff;
-      border-radius: var(--radius-lg);
-      max-width: 420px;
-      width: 100%;
-      padding: 24px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
-      animation: modalPop 0.18s ease-out;
-    }
-
-    @keyframes modalPop {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
-    .modal h3 {
-      font-size: 1.1rem;
-      margin-bottom: 8px;
-      color: var(--text);
-    }
-
-    .modal p {
-      font-size: 0.9rem;
-      color: var(--muted);
-      margin-bottom: 20px;
-    }
-
-    .modal-detail {
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      padding: 12px;
-      border-radius: var(--radius-md);
-      margin-bottom: 20px;
-      font-size: 0.88rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-    }
-
-    .btn-cancel {
-      background: #f1f5f9;
-      color: var(--text-secondary);
-    }
-
-    .btn-confirm-danger {
-      background: var(--danger);
-      color: #fff;
-    }
-
-    .btn-confirm-danger:hover {
-      background: var(--danger-hover);
-    }
-
-    /* TOAST NOTIFICATION */
     #toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      padding: 14px 20px;
-      border-radius: var(--radius-md);
-      color: #fff;
-      font-weight: 600;
-      font-size: 0.9rem;
-      box-shadow: var(--shadow-md);
-      display: none;
-      align-items: center;
-      gap: 10px;
-      z-index: 300;
-      animation: slideUp 0.2s ease-out;
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(15px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    .spinner {
-      width: 14px;
-      height: 14px;
-      border: 2px solid currentColor;
-      border-bottom-color: transparent;
-      border-radius: 50%;
-      display: inline-block;
-      animation: spin 0.75s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+      position: fixed; bottom: 20px; right: 20px; padding: 12px 20px;
+      border-radius: 8px; color: #fff; font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: none; z-index: 100;
     }
   </style>
 </head>
 <body>
 
-  <!-- THANH ĐIỀU HƯỚNG TRÊN CÙNG -->
-  <header class="topbar">
-    <div class="brand">
-      <div class="brand-icon">SX</div>
-      <div class="brand-text">
-        <h1>QUẢN LÝ NHẬP LIỆU SẢN XUẤT</h1>
-        <p>Hệ thống thống kê lũy kế thời gian thực</p>
+  <div class="topbar">
+    <h1>🏭 HỆ THỐNG QUẢN LÝ NHẬP LIỆU SẢN XUẤT</h1>
+    <span>Trực tuyến • Google Sheets</span>
+  </div>
+
+  <div class="container">
+    <!-- CỘT TRÁI: FORM NHẬP -->
+    <div class="card">
+      <div class="card-header">📝 Nhập Liệu Mới</div>
+      <div class="card-body">
+        <form id="entryForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Màu sắc *</label>
+              <select id="mau" required>
+                <option value="BLACK">BLACK</option>
+                <option value="WHITE">WHITE</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Size *</label>
+              <select id="size" required>
+                <option value="XS">XS</option>
+                <option value="S">S</option>
+                <option value="M" selected>M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+                <option value="XXL">XXL</option>
+              </select>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Số lượng *</label>
+              <input type="number" id="soLuong" min="1" placeholder="Nhập số lượng (VD: 50)" required>
+            </div>
+
+            <div class="form-group">
+              <label>Mã hàng</label>
+              <input type="text" id="maHang" value="GP016570">
+            </div>
+
+            <div class="form-group">
+              <label>Loại</label>
+              <input type="text" id="loai" value="Thun 2.8cm">
+            </div>
+
+            <div class="form-group full-width">
+              <label>Ghi chú</label>
+              <input type="text" id="ghiChu" placeholder="Tùy chọn">
+            </div>
+          </div>
+
+          <button type="submit" id="btnSubmit" class="btn btn-primary">💾 Lưu dữ liệu</button>
+        </form>
       </div>
     </div>
-    <div class="topbar-actions">
-      <div class="sync-status">
-        <span id="statusDot" class="status-dot"></span>
-        <span id="statusText">Sẵn sàng</span>
-      </div>
-    </div>
-  </header>
 
-  <!-- KHÔNG GIAN LÀM VIỆC CHÍNH -->
-  <main class="workspace">
-
-    <!-- DẢI THẺ KPI TỔNG QUAN -->
-    <section class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-title">
-          <span>TỔNG SẢN LƯỢNG LŨY KẾ</span>
-          <span>📦</span>
-        </div>
-        <div class="kpi-value" id="kpiTotalAll">0</div>
-        <div class="kpi-sub" id="kpiLastSync">Chưa đồng bộ</div>
-      </div>
-
-      <div class="kpi-card black-card">
-        <div class="kpi-title">
-          <span>SẢN LƯỢNG MÀU BLACK</span>
-          <span class="badge badge-black">BLACK</span>
-        </div>
-        <div class="kpi-value" id="kpiTotalBlack">0</div>
-        <div class="kpi-sub" id="kpiBlackShare">Chiếm 0% tổng sản lượng</div>
-      </div>
-
-      <div class="kpi-card white-card">
-        <div class="kpi-title">
-          <span>SẢN LƯỢNG MÀU WHITE</span>
-          <span class="badge badge-white">WHITE</span>
-        </div>
-        <div class="kpi-value" id="kpiTotalWhite">0</div>
-        <div class="kpi-sub" id="kpiWhiteShare">Chiếm 0% tổng sản lượng</div>
-      </div>
-    </section>
-
-    <!-- BỐ CỤC 2 CỘT: TRẠM NHẬP LIỆU & BẢNG DỮ LIỆU -->
-    <div class="main-grid">
-
-      <!-- CỘT TRÁI: TRẠM NHẬP LIỆU NHANH -->
+    <!-- CỘT PHẢI: THỐNG KÊ & LỊCH SỬ -->
+    <div class="right-panel">
       <div class="card">
         <div class="card-header">
-          <div class="card-title">⚡ Trạm Nhập Liệu Nhanh</div>
+          <span>📊 Tổng Hợp Lũy Kế</span>
+          <button id="btnReload" class="btn btn-reload">🔄 Làm mới</button>
         </div>
-        <div class="card-body">
-          <form id="entryForm" class="form-stack">
-            <!-- Chọn Màu Sắc -->
-            <div class="form-group">
-              <label>Màu sắc <span class="req">*</span></label>
-              <input type="hidden" id="mau" value="BLACK">
-              <div class="color-picker" id="colorPicker">
-                <div class="color-option active" data-value="BLACK">
-                  <span class="color-swatch"></span> BLACK
-                </div>
-                <div class="color-option" data-value="WHITE">
-                  <span class="color-swatch"></span> WHITE
-                </div>
-              </div>
-            </div>
-
-            <!-- Chọn Kích Thước -->
-            <div class="form-group">
-              <label>Kích thước (Size) <span class="req">*</span></label>
-              <input type="hidden" id="size" value="M">
-              <div class="size-picker" id="sizePicker">
-                <div class="size-option" data-value="XS">XS</div>
-                <div class="size-option" data-value="S">S</div>
-                <div class="size-option active" data-value="M">M</div>
-                <div class="size-option" data-value="L">L</div>
-                <div class="size-option" data-value="XL">XL</div>
-                <div class="size-option" data-value="XXL">XXL</div>
-              </div>
-            </div>
-
-            <!-- Nhập Số Lượng -->
-            <div class="form-group">
-              <label for="soLuong">Số lượng nhập <span class="req">*</span></label>
-              <input type="number" id="soLuong" min="1" placeholder="Nhập số lượng (VD: 50)" required autofocus>
-              <div class="quick-qty">
-                <button type="button" class="qty-chip" onclick="addQuickQty(10)">+10</button>
-                <button type="button" class="qty-chip" onclick="addQuickQty(20)">+20</button>
-                <button type="button" class="qty-chip" onclick="addQuickQty(50)">+50</button>
-                <button type="button" class="qty-chip" onclick="addQuickQty(100)">+100</button>
-                <button type="button" class="qty-chip" onclick="clearQty()">Xóa</button>
-              </div>
-            </div>
-
-            <!-- Mã Hàng & Loại -->
-            <div class="form-row-2">
-              <div class="form-group">
-                <label for="maHang">Mã hàng</label>
-                <input type="text" id="maHang" value="GP016570">
-              </div>
-              <div class="form-group">
-                <label for="loai">Loại</label>
-                <input type="text" id="loai" value="Thun 2.8cm">
-              </div>
-            </div>
-
-            <!-- Ghi Chú -->
-            <div class="form-group">
-              <label for="ghiChu">Ghi chú</label>
-              <input type="text" id="ghiChu" placeholder="Ghi chú ca, chuyền, người nhập...">
-            </div>
-
-            <button type="submit" id="btnSubmit" class="btn btn-primary">
-              <span>💾 Lưu dữ liệu (Enter)</span>
-            </button>
-          </form>
+        <div class="table-responsive">
+          <table id="summaryTable">
+            <thead>
+              <tr>
+                <th>MÀU</th><th>XS</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>XXL</th><th>TỔNG CỘNG</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="8">Đang tải dữ liệu...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <!-- CỘT PHẢI: MA TRẬN LŨY KẾ & LỊCH SỬ -->
-      <div class="right-column">
-
-        <!-- KHỐI BẢNG THỐNG KÊ LŨY KẾ -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">📊 Ma Trận Tổng Hợp Lũy Kế</div>
-            <button id="btnReload" class="btn btn-refresh">
-              <span id="reloadIcon">🔄</span> Làm mới
-            </button>
-          </div>
-          <div class="table-responsive">
-            <table id="summaryTable">
-              <thead>
-                <tr>
-                  <th>MÀU SẮC</th>
-                  <th>XS</th>
-                  <th>S</th>
-                  <th>M</th>
-                  <th>L</th>
-                  <th>XL</th>
-                  <th>XXL</th>
-                  <th>TỔNG CỘNG</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td colspan="8" style="padding: 28px; color: var(--muted);">
-                    <span class="spinner"></span> Đang đồng bộ dữ liệu từ máy chủ...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+      <div class="card">
+        <div class="card-header">🕒 5 Lần Nhập Gần Nhất</div>
+        <div class="table-responsive">
+          <table id="recentTable">
+            <thead>
+              <tr>
+                <th>Thời gian</th><th>Mã hàng</th><th>Loại</th><th>Màu</th><th>Size</th><th>Số lượng</th><th>Ghi chú</th><th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="8">Đang tải dữ liệu...</td></tr>
+            </tbody>
+          </table>
         </div>
-
-        <!-- KHỐI 5 LẦN NHẬP GẦN NHẤT -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">🕒 5 Lần Nhập Gần Nhất</div>
-          </div>
-          <div class="table-responsive">
-            <table id="recentTable">
-              <thead>
-                <tr>
-                  <th>Thời gian</th>
-                  <th>Mã hàng</th>
-                  <th>Loại</th>
-                  <th>Màu</th>
-                  <th>Size</th>
-                  <th>Số lượng</th>
-                  <th>Ghi chú</th>
-                  <th>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td colspan="8" style="padding: 28px; color: var(--muted);">
-                    <span class="spinner"></span> Đang tải lịch sử nhập...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </main>
-
-  <!-- MODAL XÁC NHẬN HOÀN TÁC -->
-  <div class="modal-backdrop" id="undoModal">
-    <div class="modal">
-      <h3>⚠️ Xác nhận hoàn tác bản ghi</h3>
-      <p>Dữ liệu sau sẽ bị xóa khỏi bảng thống kê lũy kế trên hệ thống:</p>
-      <div class="modal-detail" id="undoModalDetail"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-cancel" onclick="closeUndoModal()">Hủy bỏ</button>
-        <button type="button" class="btn btn-confirm-danger" id="btnConfirmUndo">Xác nhận hoàn tác</button>
       </div>
     </div>
   </div>
 
-  <!-- TOAST THÔNG BÁO -->
   <div id="toast"></div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycby8k1xmjicdFd6tet0bFdcHtPXU6AqDjXMje7w8cPNBdVPyWhs_ICSadtiG7-cI6Rv08w/exec";
     const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 
-    // Lưu danh sách gần nhất vào biến toàn cục để tránh lỗi ký tự đặc biệt trong onclick
-    let recentRecords = [];
-    let pendingUndoIndex = null;
-
-    // KHỞI TẠO BỘ CHỌN NHANH MÀU SẮC & SIZE
-    document.querySelectorAll("#colorPicker .color-option").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll("#colorPicker .color-option").forEach(el => el.classList.remove("active"));
-        btn.classList.add("active");
-        document.getElementById("mau").value = btn.dataset.value;
-      });
-    });
-
-    document.querySelectorAll("#sizePicker .size-option").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll("#sizePicker .size-option").forEach(el => el.classList.remove("active"));
-        btn.classList.add("active");
-        document.getElementById("size").value = btn.dataset.value;
-      });
-    });
-
-    // HÀM CỘNG NHANH SỐ LƯỢNG
-    function addQuickQty(amount) {
-      const input = document.getElementById("soLuong");
-      const current = Number(input.value) || 0;
-      input.value = current + amount;
-      input.focus();
-    }
-
-    function clearQty() {
-      const input = document.getElementById("soLuong");
-      input.value = "";
-      input.focus();
-    }
-
-    // HIỂN THỊ THÔNG BÁO TOAST
     function showToast(message, type = "success") {
       const toast = document.getElementById("toast");
       toast.innerText = message;
       toast.style.backgroundColor = type === "success" ? "var(--success)" : "var(--danger)";
-      toast.style.display = "flex";
-      clearTimeout(toast.timer);
-      toast.timer = setTimeout(() => {
-        toast.style.display = "none";
-      }, 3200);
+      toast.style.display = "block";
+      setTimeout(() => { toast.style.display = "none"; }, 3000);
     }
 
-    // CẬP NHẬT TRẠNG THÁI ĐỒNG BỘ TRÊN TOPBAR
-    function setSyncStatus(state, text) {
-      const dot = document.getElementById("statusDot");
-      const label = document.getElementById("statusText");
-      dot.className = "status-dot";
-      if (state === "syncing") dot.classList.add("syncing");
-      if (state === "error") dot.classList.add("error");
-      label.innerText = text;
-    }
-
-    // CHỐNG XSS KHI HIỂN THỊ TEXT TỪ NGƯỜI DÙNG
-    function escapeHtml(str) {
-      if (str === null || str === undefined) return "";
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    // TẢI DỮ LIỆU TỪ SERVER (GET)
     async function loadData() {
-      const btnReload = document.getElementById("btnReload");
-      btnReload.disabled = true;
-      setSyncStatus("syncing", "Đang đồng bộ...");
-
       try {
         const res = await fetch(API_URL);
         const data = await res.json();
-
         if (data.status === "success") {
-          renderKPIs(data.summary);
           renderSummary(data.summary);
           renderRecent(data.recent);
-
-          const now = new Date().toLocaleTimeString("vi-VN");
-          document.getElementById("kpiLastSync").innerText = `Cập nhật lúc: ${now}`;
-          setSyncStatus("online", "Đã đồng bộ");
         } else {
-          throw new Error(data.message || "Lỗi tải dữ liệu");
+          showToast(data.message || "Lỗi tải dữ liệu", "error");
         }
       } catch (err) {
-        console.error(err);
-        setSyncStatus("error", "Mất kết nối");
         showToast("Không thể kết nối đến máy chủ", "error");
-        document.querySelector("#summaryTable tbody").innerHTML = `
-          <tr>
-            <td colspan="8" style="padding: 24px; color: var(--danger);">
-              ⚠️ Không thể tải dữ liệu. Vui lòng bấm "Làm mới" để thử lại.
-            </td>
-          </tr>
-        `;
-      } finally {
-        btnReload.disabled = false;
+        console.error(err);
       }
     }
 
-    // CẬP NHẬT 3 THẺ KPI TRÊN CÙNG
-    function renderKPIs(summary) {
-      if (!summary) return;
-      const totalAll = Number(summary.TOTAL_ALL || 0);
-      const totalBlack = Number(summary.BLACK?.TOTAL || 0);
-      const totalWhite = Number(summary.WHITE?.TOTAL || 0);
-
-      const blackPercent = totalAll > 0 ? Math.round((totalBlack / totalAll) * 100) : 0;
-      const whitePercent = totalAll > 0 ? Math.round((totalWhite / totalAll) * 100) : 0;
-
-      document.getElementById("kpiTotalAll").innerText = totalAll.toLocaleString("vi-VN");
-      document.getElementById("kpiTotalBlack").innerText = totalBlack.toLocaleString("vi-VN");
-      document.getElementById("kpiTotalWhite").innerText = totalWhite.toLocaleString("vi-VN");
-
-      document.getElementById("kpiBlackShare").innerText = `Chiếm ${blackPercent}% tổng sản lượng`;
-      document.getElementById("kpiWhiteShare").innerText = `Chiếm ${whitePercent}% tổng sản lượng`;
-    }
-
-    // HIỂN THỊ BẢNG MA TRẬN LŨY KẾ
     function renderSummary(summary) {
       const tbody = document.querySelector("#summaryTable tbody");
       if (!summary) return;
-
       const colors = ["BLACK", "WHITE"];
       let html = "";
 
@@ -1024,71 +236,64 @@
         html += `
           <tr>
             <td><span class="badge badge-${col.toLowerCase()}">${col}</span></td>
-            ${SIZES.map(s => `<td>${Number(item[s] || 0).toLocaleString("vi-VN")}</td>`).join("")}
-            <td><strong>${Number(item.TOTAL || 0).toLocaleString("vi-VN")}</strong></td>
+            ${SIZES.map(s => `<td>${(item[s] || 0).toLocaleString()}</td>`).join("")}
+            <td><strong>${(item.TOTAL || 0).toLocaleString()}</strong></td>
           </tr>
         `;
       });
 
       const totalCol = SIZES.map(s => {
-        const sumSize = Number(summary.BLACK?.[s] || 0) + Number(summary.WHITE?.[s] || 0);
-        return `<td><strong>${sumSize.toLocaleString("vi-VN")}</strong></td>`;
+        const sumSize = (summary.BLACK?.[s] || 0) + (summary.WHITE?.[s] || 0);
+        return `<td><strong>${sumSize.toLocaleString()}</strong></td>`;
       }).join("");
 
       html += `
         <tr class="total-row">
-          <td>TỔNG CỘNG</td>
+          <td>TỔNG</td>
           ${totalCol}
-          <td class="grand-total-cell">${Number(summary.TOTAL_ALL || 0).toLocaleString("vi-VN")}</td>
+          <td style="color:var(--primary); font-size:1.05rem;">${(summary.TOTAL_ALL || 0).toLocaleString()}</td>
         </tr>
       `;
       tbody.innerHTML = html;
     }
 
-    // HIỂN THỊ 5 LẦN NHẬP GẦN NHẤT
     function renderRecent(recent) {
       const tbody = document.querySelector("#recentTable tbody");
-      recentRecords = Array.isArray(recent) ? recent : [];
-
-      if (recentRecords.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="padding: 24px; color: var(--muted);">Chưa có bản ghi nào</td></tr>`;
+      if (!recent || recent.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="color:var(--muted)">Chưa có bản ghi nào</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = recentRecords.map((item, index) => `
+      tbody.innerHTML = recent.map(item => `
         <tr>
-          <td style="color: var(--muted); font-size: 0.82rem;">${escapeHtml(item.ngay)}</td>
-          <td><strong>${escapeHtml(item.maHang)}</strong></td>
-          <td>${escapeHtml(item.loai)}</td>
-          <td><span class="badge badge-${String(item.mau).toLowerCase()}">${escapeHtml(item.mau)}</span></td>
-          <td><span class="size-pill">${escapeHtml(item.size)}</span></td>
-          <td><strong>${Number(item.soLuong || 0).toLocaleString("vi-VN")}</strong></td>
-          <td style="color: var(--muted);">${escapeHtml(item.ghiChu || "-")}</td>
+          <td>${item.ngay}</td>
+          <td><strong>${item.maHang}</strong></td>
+          <td>${item.loai}</td>
+          <td><span class="badge badge-${item.mau.toLowerCase()}">${item.mau}</span></td>
+          <td><strong>${item.size}</strong></td>
+          <td><strong>${item.soLuong}</strong></td>
+          <td>${item.ghiChu || "-"}</td>
           <td>
-            <button type="button" class="btn btn-danger-outline" id="btnUndo-${index}" onclick="openUndoModal(${index})">
-              Hoàn tác
-            </button>
+            <button class="btn btn-danger" onclick='handleUndo(${JSON.stringify(item)})'>Hoàn tác</button>
           </td>
         </tr>
       `).join("");
     }
 
-    // GỬI THÊM MỚI (POST add)
     document.getElementById("entryForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = document.getElementById("btnSubmit");
       btn.disabled = true;
-      btn.innerHTML = `<span class="spinner"></span> Đang lưu dữ liệu...`;
-      setSyncStatus("syncing", "Đang ghi dữ liệu...");
+      btn.innerText = "⏳ Đang lưu...";
 
       const payload = {
         action: "add",
         mau: document.getElementById("mau").value,
         size: document.getElementById("size").value,
         soLuong: Number(document.getElementById("soLuong").value),
-        maHang: document.getElementById("maHang").value.trim(),
-        loai: document.getElementById("loai").value.trim(),
-        ghiChu: document.getElementById("ghiChu").value.trim()
+        maHang: document.getElementById("maHang").value,
+        loai: document.getElementById("loai").value,
+        ghiChu: document.getElementById("ghiChu").value
       };
 
       try {
@@ -1100,60 +305,27 @@
         const result = await res.json();
 
         if (result.status === "success") {
-          showToast(`Đã lưu: ${payload.mau} - Size ${payload.size} (+${payload.soLuong})`);
+          showToast("Đã lưu dữ liệu thành công!");
           document.getElementById("soLuong").value = "";
           document.getElementById("ghiChu").value = "";
           document.getElementById("soLuong").focus();
           await loadData();
         } else {
-          showToast(result.message || "Lỗi khi lưu dữ liệu", "error");
-          setSyncStatus("error", "Lỗi lưu");
+          showToast(result.message || "Lỗi khi lưu", "error");
         }
       } catch (err) {
-        showToast("Lỗi đường truyền khi gửi dữ liệu", "error");
-        setSyncStatus("error", "Mất kết nối");
+        showToast("Lỗi gửi dữ liệu", "error");
         console.error(err);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<span>💾 Lưu dữ liệu (Enter)</span>`;
+        btn.innerText = "💾 Lưu dữ liệu";
       }
     });
 
-    // MỞ & ĐÓNG MODAL HOÀN TÁC AN TOÀN
-    function openUndoModal(index) {
-      const item = recentRecords[index];
-      if (!item) return;
-      pendingUndoIndex = index;
-
-      document.getElementById("undoModalDetail").innerHTML = `
-        <div>
-          <span class="badge badge-${String(item.mau).toLowerCase()}">${escapeHtml(item.mau)}</span>
-          <strong style="margin-left: 8px;">Size ${escapeHtml(item.size)}</strong>
-          <div style="font-size: 0.78rem; color: var(--muted); margin-top: 4px;">
-            Mã: ${escapeHtml(item.maHang)} | Thời gian: ${escapeHtml(item.ngay)}
-          </div>
-        </div>
-        <div style="font-size: 1.15rem; font-weight: 800; color: var(--danger);">
-          -${Number(item.soLuong).toLocaleString("vi-VN")} cái
-        </div>
-      `;
-      document.getElementById("undoModal").classList.add("show");
-    }
-
-    function closeUndoModal() {
-      pendingUndoIndex = null;
-      document.getElementById("undoModal").classList.remove("show");
-    }
-
-    // XỬ LÝ HOÀN TÁC (POST undo)
-    document.getElementById("btnConfirmUndo").addEventListener("click", async () => {
-      if (pendingUndoIndex === null) return;
-      const item = recentRecords[pendingUndoIndex];
-      const btnConfirm = document.getElementById("btnConfirmUndo");
-
-      btnConfirm.disabled = true;
-      btnConfirm.innerHTML = `<span class="spinner"></span> Đang xử lý...`;
-      setSyncStatus("syncing", "Đang hoàn tác...");
+    async function handleUndo(item) {
+      if (!confirm(`Bạn có chắc muốn hoàn tác dòng nhập: ${item.mau} - Size ${item.size} (${item.soLuong} cái)?`)) {
+        return;
+      }
 
       try {
         const res = await fetch(API_URL, {
@@ -1170,25 +342,17 @@
         const result = await res.json();
 
         if (result.status === "success") {
-          showToast("Đã hoàn tác bản ghi thành công!");
-          closeUndoModal();
+          showToast("Đã hoàn tác bản ghi!");
           await loadData();
         } else {
-          showToast(result.message || "Không thể hoàn tác bản ghi", "error");
-          setSyncStatus("error", "Lỗi hoàn tác");
+          showToast(result.message || "Không thể hoàn tác", "error");
         }
       } catch (err) {
         showToast("Lỗi kết nối khi hoàn tác", "error");
-        setSyncStatus("error", "Mất kết nối");
-      } finally {
-        btnConfirm.disabled = false;
-        btnConfirm.innerText = "Xác nhận hoàn tác";
       }
-    });
+    }
 
     document.getElementById("btnReload").addEventListener("click", loadData);
-
-    // Tự động tải dữ liệu khi mở trang
     loadData();
   </script>
 </body>
