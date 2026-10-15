@@ -2,12 +2,11 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Quản Lý Nhập Liệu Sản Xuất</title>
   <style>
     :root {
       --primary: #2563eb;
-      --primary-hover: #1d4ed8;
       --navy: #0f172a;
       --bg: #f1f5f9;
       --card: #ffffff;
@@ -19,79 +18,90 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+    body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.4; overflow-x: hidden; }
 
-    /* Thanh tiêu đề phần mềm */
+    /* Thanh tiêu đề gọn trên điện thoại */
     .topbar {
-      background: var(--navy); color: #fff; padding: 12px 24px;
+      background: var(--navy); color: #fff; padding: 10px 14px;
       display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15); margin-bottom: 20px;
+      position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
-    .topbar h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.3px; }
-    .topbar span { font-size: 0.8rem; color: #94a3b8; }
-
-    /* Bố cục 2 cột chuẩn phần mềm */
-    .container {
-      max-width: 1200px; margin: 0 auto; padding: 0 16px 24px;
-      display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start;
+    .topbar h1 { font-size: 0.95rem; font-weight: 700; }
+    .btn-reload {
+      background: rgba(255,255,255,0.15); color: #fff; border: none;
+      padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
     }
-    .right-panel { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
-    @media (max-width: 860px) { .container { grid-template-columns: 1fr; } }
 
-    /* Khung Card */
-    .card {
-      background: var(--card); border-radius: 10px;
+    .container { max-width: 650px; width: 100%; margin: 10px auto; padding: 0 8px 20px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* Khung Dropdown thả xuống */
+    details.card {
+      background: var(--card); border-radius: 10px; width: 100%;
       border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;
     }
-    .card-header {
-      background: #f8fafc; padding: 12px 16px; border-bottom: 1px solid #e2e8f0;
-      display: flex; align-items: center; justify-content: space-between;
-      font-weight: 700; font-size: 0.95rem; color: var(--navy);
+    summary.card-header {
+      background: #f8fafc; padding: 11px 14px; font-weight: 700; font-size: 0.92rem;
+      color: var(--navy); cursor: pointer; list-style: none;
+      display: flex; align-items: center; justify-content: space-between; user-select: none;
     }
-    .card-body { padding: 16px; }
+    summary.card-header::-webkit-details-marker { display: none; }
+    summary.card-header::after { content: "▼"; font-size: 0.7rem; color: var(--muted); transition: 0.2s; }
+    details[open] > summary.card-header { border-bottom: 1px solid #e2e8f0; }
+    details[open] > summary.card-header::after { transform: rotate(180deg); }
 
-    /* Form nhập liệu */
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .card-body { padding: 12px; }
+
+    /* Form nhập liệu chống tràn */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
     .full-width { grid-column: span 2; }
-    label { font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; }
+    label { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; }
     input, select {
-      padding: 9px 11px; border: 1px solid var(--border); border-radius: 6px;
-      font-size: 0.95rem; color: var(--text); background: #fff; outline: none;
+      width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 0.95rem; color: var(--text); background: #fff; outline: none;
     }
-    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+    input:focus, select:focus { border-color: var(--primary); }
     #soLuong { font-weight: 700; font-size: 1.05rem; color: var(--primary); }
+
+    /* Menu thả xuống phụ cho Mã hàng, Loại, Ghi chú */
+    details.sub-drop {
+      grid-column: span 2; background: #f8fafc; border: 1px dashed var(--border);
+      border-radius: 6px; padding: 6px 10px;
+    }
+    details.sub-drop summary {
+      font-size: 0.8rem; font-weight: 600; color: var(--muted); cursor: pointer; list-style: none;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    details.sub-drop summary::after { content: "Mở rộng ▾"; font-size: 0.75rem; color: var(--primary); }
+    details.sub-drop[open] summary { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0; }
+    details.sub-drop[open] summary::after { content: "Thu gọn ▴"; }
 
     /* Nút bấm */
     .btn {
-      padding: 10px 16px; border: none; border-radius: 6px; font-weight: 600;
-      font-size: 0.9rem; cursor: pointer; transition: 0.15s;
+      padding: 11px 14px; border: none; border-radius: 8px; font-weight: 600;
+      font-size: 0.95rem; cursor: pointer; width: 100%; margin-top: 10px;
     }
-    .btn-primary { background: var(--primary); color: #fff; width: 100%; margin-top: 14px; }
-    .btn-primary:hover { background: var(--primary-hover); }
-    .btn-reload { background: #fff; border: 1px solid var(--border); color: var(--text); padding: 5px 10px; font-size: 0.8rem; }
-    .btn-reload:hover { border-color: var(--primary); color: var(--primary); }
-    .btn-danger { background: #fee2e2; color: var(--danger); padding: 5px 10px; font-size: 0.78rem; }
-    .btn-danger:hover { background: var(--danger); color: #fff; }
-    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-danger {
+      background: #fee2e2; color: var(--danger); padding: 4px 7px;
+      font-size: 0.72rem; border-radius: 5px; width: auto; margin: 0; white-space: nowrap;
+    }
+    .btn:disabled { opacity: 0.6; }
 
-    /* Bảng dữ liệu */
-    .table-responsive { width: 100%; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; text-align: center; font-variant-numeric: tabular-nums; }
-    th, td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
-    th { background: #f8fafc; color: var(--muted); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; }
-    tbody tr:hover { background: #f8fafc; }
+    /* Bảng dữ liệu co giãn vừa khít màn hình điện thoại */
+    table { width: 100%; border-collapse: collapse; text-align: center; }
+    th, td { padding: 7px 3px; border-bottom: 1px solid #e2e8f0; font-size: 0.78rem; word-break: break-word; }
+    th { background: #f1f5f9; color: var(--muted); font-size: 0.7rem; font-weight: 700; }
     tr:last-child td { border-bottom: none; }
-    .total-row { font-weight: 700; background: #eff6ff !important; border-top: 2px solid #bfdbfe; }
+    .total-row { font-weight: 700; background: #eff6ff; }
 
-    /* Nhãn Màu & Thông báo */
-    .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; }
+    .badge { display: inline-block; padding: 2px 5px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; }
     .badge-black { background: #0f172a; color: #fff; }
     .badge-white { background: #f8fafc; color: #0f172a; border: 1px solid #94a3b8; }
 
     #toast {
-      position: fixed; bottom: 20px; right: 20px; padding: 12px 20px;
-      border-radius: 8px; color: #fff; font-weight: 600;
+      position: fixed; bottom: 16px; left: 16px; right: 16px; padding: 11px 16px;
+      border-radius: 8px; color: #fff; font-weight: 600; text-align: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: none; z-index: 100;
     }
   </style>
@@ -99,14 +109,14 @@
 <body>
 
   <div class="topbar">
-    <h1>🏭 HỆ THỐNG QUẢN LÝ NHẬP LIỆU SẢN XUẤT</h1>
-    <span>Trực tuyến • Google Sheets</span>
+    <h1>🏭 QUẢN LÝ NHẬP LIỆU</h1>
+    <button id="btnReload" class="btn-reload">🔄 Làm mới</button>
   </div>
 
   <div class="container">
-    <!-- CỘT TRÁI: FORM NHẬP -->
-    <div class="card">
-      <div class="card-header">📝 Nhập Liệu Mới</div>
+    <!-- 1. KHỐI NHẬP LIỆU -->
+    <details class="card" open>
+      <summary class="card-header">📝 Nhập Liệu Mới</summary>
       <div class="card-body">
         <form id="entryForm">
           <div class="form-grid">
@@ -132,67 +142,68 @@
 
             <div class="form-group full-width">
               <label>Số lượng *</label>
-              <input type="number" id="soLuong" min="1" placeholder="Nhập số lượng (VD: 50)" required>
+              <input type="number" id="soLuong" min="1" inputmode="numeric" placeholder="Ví dụ: 50" required>
             </div>
 
-            <div class="form-group">
-              <label>Mã hàng</label>
-              <input type="text" id="maHang" value="GP016570">
-            </div>
-
-            <div class="form-group">
-              <label>Loại</label>
-              <input type="text" id="loai" value="Thun 2.8cm">
-            </div>
-
-            <div class="form-group full-width">
-              <label>Ghi chú</label>
-              <input type="text" id="ghiChu" placeholder="Tùy chọn">
-            </div>
+            <details class="sub-drop">
+              <summary>⚙️ Mã hàng, Loại & Ghi chú</summary>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Mã hàng</label>
+                  <input type="text" id="maHang" value="GP016570">
+                </div>
+                <div class="form-group">
+                  <label>Loại</label>
+                  <input type="text" id="loai" value="Thun 2.8cm">
+                </div>
+                <div class="form-group full-width">
+                  <label>Ghi chú</label>
+                  <input type="text" id="ghiChu" placeholder="Tùy chọn">
+                </div>
+              </div>
+            </details>
           </div>
 
           <button type="submit" id="btnSubmit" class="btn btn-primary">💾 Lưu dữ liệu</button>
         </form>
       </div>
-    </div>
+    </details>
 
-    <!-- CỘT PHẢI: THỐNG KÊ & LỊCH SỬ -->
-    <div class="right-panel">
-      <div class="card">
-        <div class="card-header">
-          <span>📊 Tổng Hợp Lũy Kế</span>
-          <button id="btnReload" class="btn btn-reload">🔄 Làm mới</button>
-        </div>
-        <div class="table-responsive">
-          <table id="summaryTable">
-            <thead>
-              <tr>
-                <th>MÀU</th><th>XS</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>XXL</th><th>TỔNG CỘNG</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td colspan="8">Đang tải dữ liệu...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <!-- 2. KHỐI BẢNG LŨY KẾ (DROP THẢ XUỐNG) -->
+    <details class="card" open>
+      <summary class="card-header">📊 Tổng Hợp Lũy Kế</summary>
+      <table id="summaryTable">
+        <thead>
+          <tr>
+            <th>MÀU</th><th>XS</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>XXL</th><th>TỔNG</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="8">Đang tải dữ liệu...</td></tr>
+        </tbody>
+      </table>
+    </details>
 
-      <div class="card">
-        <div class="card-header">🕒 5 Lần Nhập Gần Nhất</div>
-        <div class="table-responsive">
-          <table id="recentTable">
-            <thead>
-              <tr>
-                <th>Thời gian</th><th>Mã hàng</th><th>Loại</th><th>Màu</th><th>Size</th><th>Số lượng</th><th>Ghi chú</th><th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td colspan="8">Đang tải dữ liệu...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    <!-- 3. KHỐI 5 LẦN NHẬP GẦN NHẤT (ĐÃ BỎ CỘT THỜI GIAN) -->
+    <details class="card" open>
+      <summary class="card-header">🕒 5 Lần Nhập Gần Nhất</summary>
+      <table id="recentTable">
+        <thead>
+          <tr>
+            <th>Mã hàng</th>
+            <th>Loại</th>
+            <th>Màu</th>
+            <th>Size</th>
+            <th>SL</th>
+            <th>Ghi chú</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="7">Đang tải dữ liệu...</td></tr>
+        </tbody>
+      </table>
+    </details>
   </div>
 
   <div id="toast"></div>
@@ -213,6 +224,7 @@
       try {
         const res = await fetch(API_URL);
         const data = await res.json();
+
         if (data.status === "success") {
           renderSummary(data.summary);
           renderRecent(data.recent);
@@ -228,6 +240,7 @@
     function renderSummary(summary) {
       const tbody = document.querySelector("#summaryTable tbody");
       if (!summary) return;
+
       const colors = ["BLACK", "WHITE"];
       let html = "";
 
@@ -251,23 +264,23 @@
         <tr class="total-row">
           <td>TỔNG</td>
           ${totalCol}
-          <td style="color:var(--primary); font-size:1.05rem;">${(summary.TOTAL_ALL || 0).toLocaleString()}</td>
+          <td style="color:var(--primary);">${(summary.TOTAL_ALL || 0).toLocaleString()}</td>
         </tr>
       `;
       tbody.innerHTML = html;
     }
 
+    // HIỂN THỊ 5 LẦN NHẬP GẦN NHẤT (ĐÃ BỎ CỘT THỜI GIAN)
     function renderRecent(recent) {
       const tbody = document.querySelector("#recentTable tbody");
       if (!recent || recent.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="color:var(--muted)">Chưa có bản ghi nào</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="color:var(--muted)">Chưa có bản ghi nào</td></tr>`;
         return;
       }
 
       tbody.innerHTML = recent.map(item => `
         <tr>
-          <td>${item.ngay}</td>
-          <td><strong>${item.maHang}</strong></td>
+          <td>${item.maHang}</td>
           <td>${item.loai}</td>
           <td><span class="badge badge-${item.mau.toLowerCase()}">${item.mau}</span></td>
           <td><strong>${item.size}</strong></td>
@@ -308,7 +321,6 @@
           showToast("Đã lưu dữ liệu thành công!");
           document.getElementById("soLuong").value = "";
           document.getElementById("ghiChu").value = "";
-          document.getElementById("soLuong").focus();
           await loadData();
         } else {
           showToast(result.message || "Lỗi khi lưu", "error");
