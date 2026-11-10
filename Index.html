@@ -1,372 +1,116 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Quản Lý Nhập Liệu Sản Xuất</title>
-  <style>
-    :root {
-      --primary: #2563eb;
-      --navy: #0f172a;
-      --bg: #f1f5f9;
-      --card: #ffffff;
-      --text: #1e293b;
-      --muted: #64748b;
-      --border: #cbd5e1;
-      --danger: #ef4444;
-      --success: #10b981;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.4; overflow-x: hidden; }
-
-    /* Thanh tiêu đề gọn trên điện thoại */
-    .topbar {
-      background: var(--navy); color: #fff; padding: 10px 14px;
-      display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-    .topbar h1 { font-size: 0.95rem; font-weight: 700; }
-    .btn-reload {
-      background: rgba(255,255,255,0.15); color: #fff; border: none;
-      padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
-    }
-
-    .container { max-width: 650px; width: 100%; margin: 10px auto; padding: 0 8px 20px; display: flex; flex-direction: column; gap: 10px; }
-
-    /* Khung Dropdown thả xuống */
-    details.card {
-      background: var(--card); border-radius: 10px; width: 100%;
-      border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;
-    }
-    summary.card-header {
-      background: #f8fafc; padding: 11px 14px; font-weight: 700; font-size: 0.92rem;
-      color: var(--navy); cursor: pointer; list-style: none;
-      display: flex; align-items: center; justify-content: space-between; user-select: none;
-    }
-    summary.card-header::-webkit-details-marker { display: none; }
-    summary.card-header::after { content: "▼"; font-size: 0.7rem; color: var(--muted); transition: 0.2s; }
-    details[open] > summary.card-header { border-bottom: 1px solid #e2e8f0; }
-    details[open] > summary.card-header::after { transform: rotate(180deg); }
-
-    .card-body { padding: 12px; }
-
-    /* Form nhập liệu chống tràn */
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-    .form-group { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-    .full-width { grid-column: span 2; }
-    label { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; }
-    input, select {
-      width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid var(--border);
-      border-radius: 6px; font-size: 0.95rem; color: var(--text); background: #fff; outline: none;
-    }
-    input:focus, select:focus { border-color: var(--primary); }
-    #soLuong { font-weight: 700; font-size: 1.05rem; color: var(--primary); }
-
-    /* Menu thả xuống phụ cho Mã hàng, Loại, Ghi chú */
-    details.sub-drop {
-      grid-column: span 2; background: #f8fafc; border: 1px dashed var(--border);
-      border-radius: 6px; padding: 6px 10px;
-    }
-    details.sub-drop summary {
-      font-size: 0.8rem; font-weight: 600; color: var(--muted); cursor: pointer; list-style: none;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    details.sub-drop summary::after { content: "Mở rộng ▾"; font-size: 0.75rem; color: var(--primary); }
-    details.sub-drop[open] summary { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0; }
-    details.sub-drop[open] summary::after { content: "Thu gọn ▴"; }
-
-    /* Nút bấm */
-    .btn {
-      padding: 11px 14px; border: none; border-radius: 8px; font-weight: 600;
-      font-size: 0.95rem; cursor: pointer; width: 100%; margin-top: 10px;
-    }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-danger {
-      background: #fee2e2; color: var(--danger); padding: 4px 7px;
-      font-size: 0.72rem; border-radius: 5px; width: auto; margin: 0; white-space: nowrap;
-    }
-    .btn:disabled { opacity: 0.6; }
-
-    /* Bảng dữ liệu co giãn vừa khít màn hình điện thoại */
-    table { width: 100%; border-collapse: collapse; text-align: center; }
-    th, td { padding: 7px 3px; border-bottom: 1px solid #e2e8f0; font-size: 0.78rem; word-break: break-word; }
-    th { background: #f1f5f9; color: var(--muted); font-size: 0.7rem; font-weight: 700; }
-    tr:last-child td { border-bottom: none; }
-    .total-row { font-weight: 700; background: #eff6ff; }
-
-    .badge { display: inline-block; padding: 2px 5px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; }
-    .badge-black { background: #0f172a; color: #fff; }
-    .badge-white { background: #f8fafc; color: #0f172a; border: 1px solid #94a3b8; }
-
-    #toast {
-      position: fixed; bottom: 16px; left: 16px; right: 16px; padding: 11px 16px;
-      border-radius: 8px; color: #fff; font-weight: 600; text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: none; z-index: 100;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhập Liệu Kho Từ Xa</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 15px; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #007bff; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #28a745; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background: #218838; }
+        #message { margin-top: 15px; text-align: center; font-weight: bold; }
+    </style>
 </head>
 <body>
 
-  <div class="topbar">
-    <h1>🏭 QUẢN LÝ NHẬP LIỆU</h1>
-    <button id="btnReload" class="btn-reload">🔄 Làm mới</button>
-  </div>
-
-  <div class="container">
-    <!-- 1. KHỐI NHẬP LIỆU -->
-    <details class="card" open>
-      <summary class="card-header">📝 Nhập Liệu Mới</summary>
-      <div class="card-body">
-        <form id="entryForm">
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Màu sắc *</label>
-              <select id="mau" required>
-                 <option value="BLUE">BLUE</option>
+<div class="container">
+    <h2>📦 NHẬP LIỆU KHO</h2>
+    
+    <form id="dataForm" onsubmit="submitData(event)">
+        <div class="form-group">
+            <label for="mau">Màu sắc:</label>
+            <select id="mau" required>
+                <option value="">-- Chọn màu --</option>
                 <option value="BLACK">BLACK</option>
                 <option value="WHITE">WHITE</option>
-              </select>
-            </div>
+                <option value="BLUE">BLUE</option>
+            </select>
+        </div>
 
-            <div class="form-group">
-              <label>Size *</label>
-              <select id="size" required>
+        <div class="form-group">
+            <label for="size">Size:</label>
+            <select id="size" required>
+                <option value="">-- Chọn size --</option>
                 <option value="XS">XS</option>
                 <option value="S">S</option>
-                <option value="M" selected>M</option>
+                <option value="M">M</option>
                 <option value="L">L</option>
                 <option value="XL">XL</option>
                 <option value="XXL">XXL</option>
-              </select>
-            </div>
+            </select>
+        </div>
 
-            <div class="form-group full-width">
-              <label>Số lượng *</label>
-              <input type="number" id="soLuong" min="1" inputmode="numeric" placeholder="Ví dụ: 50" required>
-            </div>
+        <div class="form-group">
+            <label for="soLuong">Số lượng:</label>
+            <input type="number" id="soLuong" min="1" required placeholder="Nhập số lượng...">
+        </div>
 
-            <details class="sub-drop">
-              <summary>⚙️ Mã hàng, Loại & Ghi chú</summary>
-              <div class="form-grid">
-                <div class="form-group">
-                  <label>Mã hàng</label>
-                  <input type="text" id="maHang" value="GP016570">
-                </div>
-                <div class="form-group">
-                  <label>Loại</label>
-                  <input type="text" id="loai" value="Thun 2.8cm">
-                </div>
-                <div class="form-group full-width">
-                  <label>Ghi chú</label>
-                  <input type="text" id="ghiChu" placeholder="Tùy chọn">
-                </div>
-              </div>
-            </details>
-          </div>
+        <div class="form-group">
+            <label for="ghiChu">Ghi chú:</label>
+            <textarea id="ghiChu" rows="3" placeholder="Nhập ghi chú (nếu có)..."></textarea>
+        </div>
 
-          <button type="submit" id="btnSubmit" class="btn btn-primary">💾 Lưu dữ liệu</button>
-        </form>
-      </div>
-    </details>
+        <button type="submit" id="submitBtn">Gửi dữ liệu</button>
+    </form>
 
-    <!-- 2. KHỐI BẢNG LŨY KẾ (DROP THẢ XUỐNG) -->
-    <details class="card" open>
-      <summary class="card-header">📊 Tổng Hợp Lũy Kế</summary>
-      <table id="summaryTable">
-        <thead>
-          <tr>
-            <th>MÀU</th><th>XS</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>XXL</th><th>TỔNG</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td colspan="8">Đang tải dữ liệu...</td></tr>
-        </tbody>
-      </table>
-    </details>
+    <div id="message"></div>
+</div>
 
-    <!-- 3. KHỐI 5 LẦN NHẬP GẦN NHẤT (ĐÃ BỎ CỘT THỜI GIAN) -->
-    <details class="card" open>
-      <summary class="card-header">🕒 5 Lần Nhập Gần Nhất</summary>
-      <table id="recentTable">
-        <thead>
-          <tr>
-            <th>Mã hàng</th>
-            <th>Loại</th>
-            <th>Màu</th>
-            <th>Size</th>
-            <th>SL</th>
-            <th>Ghi chú</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td colspan="7">Đang tải dữ liệu...</td></tr>
-        </tbody>
-      </table>
-    </details>
-  </div>
+<script>
+    // ⚠️ QUAN TRỌNG: Thay thế link dưới bằng URL Web App chuẩn của bạn sau khi Deploy (Kết thúc bằng /exec)
+    const WEB_APP_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
 
-  <div id="toast"></div>
+    async function submitData(event) {
+        event.preventDefault();
+        
+        const btn = document.getElementById('submitBtn');
+        const msg = document.getElementById('message');
+        
+        const payload = {
+            action: "add",
+            mau: document.getElementById('mau').value,
+            size: document.getElementById('size').value,
+            soLuong: Number(document.getElementById('soLuong').value),
+            ghiChu: document.getElementById('ghiChu').value
+        };
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycby8k1xmjicdFd6tet0bFdcHtPXU6AqDjXMje7w8cPNBdVPyWhs_ICSadtiG7-cI6Rv08w/exec";
-    const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+        btn.disabled = true;
+        btn.innerText = "Đang gửi...";
+        msg.style.color = "#007bff";
+        msg.innerText = "Đang kết nối tới Google Sheet...";
 
-    function showToast(message, type = "success") {
-      const toast = document.getElementById("toast");
-      toast.innerText = message;
-      toast.style.backgroundColor = type === "success" ? "var(--success)" : "var(--danger)";
-      toast.style.display = "block";
-      setTimeout(() => { toast.style.display = "none"; }, 3000);
-    }
+        try {
+            // Sử dụng mode: 'no-cors' hoặc gửi trực tiếp nếu chạy trên cùng domain Google Apps Script. 
+            // Nếu Web App triển khai dạng "Execute as: Me" và "Access: Anyone", dùng fetch thông thường:
+            const response = await fetch(WEB_APP_URL, {
+                method: "POST",
+                // Không đặt headers 'Content-Type': 'application/json' để tránh trình duyệt kích hoạt preflight CORS gây lỗi chặn
+                body: JSON.stringify(payload)
+            });
 
-    async function loadData() {
-      try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
+            const result = await response.json();
 
-        if (data.status === "success") {
-          renderSummary(data.summary);
-          renderRecent(data.recent);
-        } else {
-          showToast(data.message || "Lỗi tải dữ liệu", "error");
+            if (result.status === "success") {
+                msg.style.color = "green";
+                msg.innerText = "✅ " + result.message;
+                document.getElementById('dataForm').reset();
+            } else {
+                throw new Error(result.message || "Lỗi không xác định từ máy chủ.");
+            }
+        } catch (error) {
+            msg.style.color = "red";
+            msg.innerText = "❌ Lỗi gửi dữ liệu: " + error.message;
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Gửi dữ liệu";
         }
-      } catch (err) {
-        showToast("Không thể kết nối đến máy chủ", "error");
-        console.error(err);
-      }
     }
+</script>
 
-    function renderSummary(summary) {
-      const tbody = document.querySelector("#summaryTable tbody");
-      if (!summary) return;
-
-      const colors = ["BLUE", "BLACK", "WHITE"];
-      let html = "";
-
-      colors.forEach(col => {
-        const item = summary[col] || {};
-        html += `
-          <tr>
-            <td><span class="badge badge-${col.toLowerCase()}">${col}</span></td>
-            ${SIZES.map(s => `<td>${(item[s] || 0).toLocaleString()}</td>`).join("")}
-            <td><strong>${(item.TOTAL || 0).toLocaleString()}</strong></td>
-          </tr>
-        `;
-      });
-
-      const totalCol = SIZES.map(s => {
-        const sumSize = (summary.BLUE?.[s] || 0) + summary.BLACK?.[s] || 0) + (summary.WHITE?.[s] || 0);
-        return `<td><strong>${sumSize.toLocaleString()}</strong></td>`;
-      }).join("");
-
-      html += `
-        <tr class="total-row">
-          <td>TỔNG</td>
-          ${totalCol}
-          <td style="color:var(--primary);">${(summary.TOTAL_ALL || 0).toLocaleString()}</td>
-        </tr>
-      `;
-      tbody.innerHTML = html;
-    }
-
-    // HIỂN THỊ 5 LẦN NHẬP GẦN NHẤT (ĐÃ BỎ CỘT THỜI GIAN)
-    function renderRecent(recent) {
-      const tbody = document.querySelector("#recentTable tbody");
-      if (!recent || recent.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="color:var(--muted)">Chưa có bản ghi nào</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = recent.map(item => `
-        <tr>
-          <td>${item.maHang}</td>
-          <td>${item.loai}</td>
-          <td><span class="badge badge-${item.mau.toLowerCase()}">${item.mau}</span></td>
-          <td><strong>${item.size}</strong></td>
-          <td><strong>${item.soLuong}</strong></td>
-          <td>${item.ghiChu || "-"}</td>
-          <td>
-            <button class="btn btn-danger" onclick='handleUndo(${JSON.stringify(item)})'>Xóa</button>
-          </td>
-        </tr>
-      `).join("");
-    }
-
-    document.getElementById("entryForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById("btnSubmit");
-      btn.disabled = true;
-      btn.innerText = "⏳ Đang lưu...";
-
-      const payload = {
-        action: "add",
-        mau: document.getElementById("mau").value,
-        size: document.getElementById("size").value,
-        soLuong: Number(document.getElementById("soLuong").value),
-        maHang: document.getElementById("maHang").value,
-        loai: document.getElementById("loai").value,
-        ghiChu: document.getElementById("ghiChu").value
-      };
-
-      try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-        const result = await res.json();
-
-        if (result.status === "success") {
-          showToast("Đã lưu dữ liệu thành công!");
-          document.getElementById("soLuong").value = "";
-          document.getElementById("ghiChu").value = "";
-          await loadData();
-        } else {
-          showToast(result.message || "Lỗi khi lưu", "error");
-        }
-      } catch (err) {
-        showToast("Lỗi gửi dữ liệu", "error");
-        console.error(err);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "💾 Lưu dữ liệu";
-      }
-    });
-
-    async function handleUndo(item) {
-      if (!confirm(`Bạn có chắc muốn hoàn tác dòng nhập: ${item.mau} - Size ${item.size} (${item.soLuong} cái)?`)) {
-        return;
-      }
-
-      try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            action: "undo",
-            row: item.row,
-            mau: item.mau,
-            size: item.size,
-            soLuong: item.soLuong
-          })
-        });
-        const result = await res.json();
-
-        if (result.status === "success") {
-          showToast("Đã hoàn tác bản ghi!");
-          await loadData();
-        } else {
-          showToast(result.message || "Không thể hoàn tác", "error");
-        }
-      } catch (err) {
-        showToast("Lỗi kết nối khi hoàn tác", "error");
-      }
-    }
-
-    document.getElementById("btnReload").addEventListener("click", loadData);
-    loadData();
-  </script>
 </body>
 </html>
