@@ -242,7 +242,7 @@
       const tbody = document.querySelector("#summaryTable tbody");
       if (!summary) return;
 
-      const colors = ["BLACK", "WHITE"];
+      const colors = ["BLUE", "BLACK", "WHITE"];
       let html = "";
 
       colors.forEach(col => {
@@ -257,7 +257,7 @@
       });
 
       const totalCol = SIZES.map(s => {
-        const sumSize = (summary.BLACK?.[s] || 0) + (summary.WHITE?.[s] || 0);
+        const sumSize = (summary.BLUE?.[s] || 0) + summary.BLACK?.[s] || 0) + (summary.WHITE?.[s] || 0);
         return `<td><strong>${sumSize.toLocaleString()}</strong></td>`;
       }).join("");
 
